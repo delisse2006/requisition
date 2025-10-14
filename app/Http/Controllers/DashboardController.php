@@ -10,36 +10,29 @@ class DashboardController extends Controller
   public function index()
 {
     $user = auth()->user();
-    $query = Requisition::with('user');
+    
+    // Get statistics
+    $totalRequisitions = Requisition::count();
+    $pendingRequisitions = Requisition::where('status', 'pending')->count();
+    $completedRequisitions = Requisition::where('status', 'paid')->count();
+    $monthlyRequisitions = Requisition::whereMonth('created_at', now()->month)->count();
 
-    // Apply search filter
-    if (request('search')) {
-        $query->where(function($q) {
-            $q->where('item_name', 'like', '%' . request('search') . '%')
-              ->orWhere('description', 'like', '%' . request('search') . '%')
-              ->orWhereHas('user', function($u) {
-                  $u->where('name', 'like', '%' . request('search') . '%');
-              });
-        });
-    }
-
-    // Apply status filter
-    if (request('status')) {
-        $query->where('status', request('status'));
-    }
-
-    // Apply urgency filter
-    if (request('urgency')) {
-        $query->where('urgency', request('urgency'));
-    }
-
-    // Employee sees only their requisitions
     if ($user->isEmployee()) {
-        $query->where('user_id', $user->id);
+        $requisitions = $user->requisitions()->latest()->paginate(10);
+        // Employee-specific stats
+        $pendingRequisitions = $user->requisitions()->where('status', 'pending')->count();
+        $completedRequisitions = $user->requisitions()->where('status', 'paid')->count();
+        $monthlyRequisitions = $user->requisitions()->whereMonth('created_at', now()->month)->count();
+    } else {
+        $requisitions = Requisition::with('user')->latest()->paginate(10);
     }
 
-    $requisitions = $query->latest()->paginate(10)->withQueryString();
-
-    return view('dashboard', compact('requisitions'));
+    return view('dashboard', compact(
+        'requisitions', 
+        'totalRequisitions', 
+        'pendingRequisitions', 
+        'completedRequisitions', 
+        'monthlyRequisitions'
+    ));
 }
 }

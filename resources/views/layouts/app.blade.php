@@ -35,6 +35,59 @@
         }
     </style>
 </head>
+
+<style>
+.dark-mode {
+    background-color: #121212 !important;
+    color: #e0e0e0 !important;
+}
+.dark-mode .navbar-dark { background-color: #1e1e1e !important; }
+.dark-mode .table-light { background-color: #1e1e1e !important; color: #e0e0e0 !important; }
+.dark-mode .card { background-color: #1e1e1e !important; border-color: #333 !important; color: #e0e0e0 !important; }
+.dark-mode .form-control, .dark-mode .form-select {
+    background-color: #2d2d2d !important;
+    border-color: #444 !important;
+    color: #e0e0e0 !important;
+}
+.dark-mode .btn-outline-primary {
+    color: #e0e0e0 !important;
+    border-color: #0d6efd !important;
+}
+.dark-mode .btn-outline-primary:hover {
+    background-color: #0d6efd !important;
+    border-color: #0d6efd !important;
+}
+</style>
+
+<script>
+// Dark mode toggle
+document.addEventListener('DOMContentLoaded', function() {
+    const darkModeToggle = document.getElementById('darkModeToggle');
+    const darkModeText = document.getElementById('darkModeText');
+    const body = document.body;
+    
+    // Check if dark mode was previously enabled
+    if (localStorage.getItem('darkMode') === 'enabled') {
+        body.classList.add('dark-mode');
+        darkModeText.textContent = 'Light Mode';
+        darkModeToggle.innerHTML = '<i class="fas fa-sun me-2"></i><span>Light Mode</span>';
+    }
+    
+    if (darkModeToggle) {
+        darkModeToggle.addEventListener('click', function() {
+            body.classList.toggle('dark-mode');
+            
+            if (body.classList.contains('dark-mode')) {
+                localStorage.setItem('darkMode', 'enabled');
+                darkModeToggle.innerHTML = '<i class="fas fa-sun me-2"></i><span>Light Mode</span>';
+            } else {
+                localStorage.setItem('darkMode', 'disabled');
+                darkModeToggle.innerHTML = '<i class="fas fa-moon me-2"></i><span>Dark Mode</span>';
+            }
+        });
+    }
+});
+</script>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
         <div class="container">
@@ -116,6 +169,13 @@
                             <li>
                                 <form method="POST" action="{{ route('logout') }}" class="d-inline">
                                     @csrf
+
+                                 <li>
+                                          <button class="dropdown-item" id="darkModeToggle">
+                                           <i class="fas fa-moon me-2"></i>
+                                           <span id="darkModeText">Dark Mode</span>
+                                   </button>
+                                 </li>
                                     <button type="submit" class="dropdown-item text-danger">
                                         <i class="fas fa-sign-out-alt me-2"></i>Sign out
                                     </button>

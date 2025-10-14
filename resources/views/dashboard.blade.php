@@ -6,9 +6,10 @@
         <h2 class="mb-0">Requisition Dashboard</h2>
         
         @if(auth()->user()->isEmployee())
-            <a href="{{ route('requisitions.create') }}" class="btn btn-primary">
-                <i class="fas fa-plus me-1"></i> New Requisition
-            </a>
+           <a href="{{ route('requisitions.create') }}" class="btn btn-primary" id="newRequisitionBtn">
+    <span class="spinner-border spinner-border-sm d-none" role="status" id="loadingSpinner"></span>
+    <span id="buttonText"><i class="fas fa-plus me-1"></i> New Requisition</span>
+</a>
         @endif
     </div>
 
@@ -295,4 +296,20 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
+
+@push('scripts')
+<script>
+document.getElementById('newRequisitionBtn').addEventListener('click', function(e) {
+    // Show loading spinner
+    document.getElementById('loadingSpinner').classList.remove('d-none');
+    document.getElementById('buttonText').classList.add('d-none');
+    this.classList.add('disabled');
+    
+    // Optional: Prevent double-click navigation
+    setTimeout(() => {
+        // If you want to allow navigation after 100ms
+    }, 100);
+});
+</script>
+@endpush
 @endsection

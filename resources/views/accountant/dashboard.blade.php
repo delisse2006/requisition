@@ -53,6 +53,42 @@
                         <th>Actions</th>
                     </tr>
                 </thead>
+
+                <!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white shadow-sm border-0">
+            <div class="card-body text-center p-3">
+                <h6 class="card-title mb-2">Total</h6>
+                <h3 class="mb-0">{{ $totalRequisitions }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-white shadow-sm border-0">
+            <div class="card-body text-center p-3">
+                <h6 class="card-title mb-2">Pending</h6>
+                <h3 class="mb-0">{{ $pendingRequisitions }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white shadow-sm border-0">
+            <div class="card-body text-center p-3">
+                <h6 class="card-title mb-2">Completed</h6>
+                <h3 class="mb-0">{{ $completedRequisitions }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white shadow-sm border-0">
+            <div class="card-body text-center p-3">
+                <h6 class="card-title mb-2">This Month</h6>
+                <h3 class="mb-0">{{ $monthlyRequisitions }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
                 <tbody>
                     @foreach($requisitions as $req)
                     <tr>

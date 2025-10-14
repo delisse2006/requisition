@@ -43,10 +43,18 @@
                             @enderror
                         </div>
                         
-                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                            <a href="{{ route('admin.users.index') }}" class="btn btn-secondary me-md-2">Cancel</a>
-                            <button type="submit" class="btn btn-primary">Update User</button>
-                        </div>
+                        <button type="submit" class="btn btn-primary" id="submitBtn">
+    <span class="spinner-border spinner-border-sm d-none" role="status" id="submitLoading"></span>
+    <span id="submitText">Submit Requisition</span>
+</button>
+
+<script>
+document.getElementById('submitBtn').addEventListener('click', function() {
+    document.getElementById('submitLoading').classList.remove('d-none');
+    document.getElementById('submitText').classList.add('d-none');
+    this.disabled = true;
+});
+</script>
                     </form>
                 </div>
             </div>
