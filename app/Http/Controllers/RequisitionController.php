@@ -110,31 +110,39 @@ class RequisitionController extends Controller
     /**
      * Accountant dashboard view (filter + search).
      */
-    public function accountantDashboard()
-    {
-        $query = Requisition::with('user')
-            ->whereIn('status', ['pending', 'bought', 'done']);
+  public function accountantDashboard()
+{
+    // Statistics for accountant dashboard
+    $stats = [
+        'total' => Requisition::count(),
+        'pending' => Requisition::where('status', 'pending')->count(),
+        'bought' => Requisition::where('status', 'bought')->count(),
+        'done' => Requisition::where('status', 'done')->count(),
+    ];
+    
+    $query = Requisition::with('user')
+        ->whereIn('status', ['pending', 'bought', 'done']);
 
-        // Search filter
-        if (request('search')) {
-            $query->where(function ($q) {
-                $q->where('item_name', 'like', '%' . request('search') . '%')
-                    ->orWhere('description', 'like', '%' . request('search') . '%')
-                    ->orWhereHas('user', function ($u) {
-                        $u->where('name', 'like', '%' . request('search') . '%');
-                    });
-            });
-        }
-
-        // Status filter
-        if (request('status')) {
-            $query->where('status', request('status'));
-        }
-
-        $requisitions = $query->latest()->paginate(15)->withQueryString();
-
-        return view('accountant.dashboard', compact('requisitions'));
+    // Apply search filter
+    if (request('search')) {
+        $query->where(function($q) {
+            $q->where('item_name', 'like', '%' . request('search') . '%')
+              ->orWhere('description', 'like', '%' . request('search') . '%')
+              ->orWhereHas('user', function($u) {
+                  $u->where('name', 'like', '%' . request('search') . '%');
+              });
+        });
     }
+
+    // Apply status filter
+    if (request('status')) {
+        $query->where('status', request('status'));
+    }
+
+    $requisitions = $query->latest()->paginate(15)->withQueryString();
+
+    return view('accountant.dashboard', compact('requisitions', 'stats'));
+}
 
     /**
      * Update requisition status (Accountant/Admin only).

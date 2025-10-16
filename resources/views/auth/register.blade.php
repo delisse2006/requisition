@@ -50,6 +50,29 @@
                     </div>
                     <button type="submit" class="btn btn-success">Register</button>
                     <a href="{{ route('login') }}" class="btn btn-link">Already have account?</a>
+ 
+                      <div class="mb-3">
+    <label>Security Question</label>
+    <select name="security_question" class="form-control" required>
+        <option value="">Select a security question</option>
+        @foreach(\App\Models\User::getSecurityQuestions() as $question)
+            <option value="{{ $question }}" {{ old('security_question') == $question ? 'selected' : '' }}>{{ $question }}</option>
+        @endforeach
+    </select>
+    @error('security_question')
+        <div class="text-danger">{{ $message }}</div>
+    @enderror
+</div>
+
+<div class="mb-3">
+    <label>Security Answer</label>
+    <input type="text" name="security_answer" class="form-control" value="{{ old('security_answer') }}" required minlength="3">
+    @error('security_answer')
+        <div class="text-danger">{{ $message }}</div>
+    @enderror
+    <small class="text-muted">Answer must be at least 3 characters long.</small>
+</div>
+
                 </form>
             </div>
         </div>

@@ -55,7 +55,7 @@
             border-bottom: 1px solid #ecf0f1;
         }
         tr:nth-child(even) {
-            background-color: #f8f9fa;
+            background-color: #fef9f9ff;
         }
         .footer {
             margin-top: 30px;
@@ -66,7 +66,7 @@
             border-top: 1px solid #ecf0f1;
         }
         .logo {
-            width: 120px;
+            width: 110px;
             height: auto;
             margin-bottom: 20px;
         }

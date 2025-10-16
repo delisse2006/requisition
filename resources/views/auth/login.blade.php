@@ -74,13 +74,13 @@
                     </div>
                 </div>
                 
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <div class="form-check">
-                        <input type="checkbox" name="remember" class="form-check-input" id="remember">
-                        <label class="form-check-label" for="remember">Remember me</label>
-                    </div>
-                    <a href="#" class="text-decoration-none text-primary fw-medium">Forgot password?</a>
-                </div>
+                <div class="mb-3 d-flex justify-content-between align-items-center">
+    <div class="form-check">
+        <input type="checkbox" name="remember" class="form-check-input" id="remember">
+        <label class="form-check-label" for="remember">Remember me</label>
+    </div>
+    <a href="{{ route('password.request') }}" class="text-decoration-none">Forgot Password?</a>
+</div>
                 
                 <button type="submit" class="btn btn-primary w-100 py-3 fw-bold fs-5">
                     <i class="fas fa-sign-in-alt me-2"></i>Sign In

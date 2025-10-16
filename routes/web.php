@@ -8,6 +8,7 @@ use App\Http\Controllers\RequisitionController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\ForgotPasswordController;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -54,4 +55,15 @@ Route::post('/requisitions/{requisition}/update-status', [RequisitionController:
 
 Route::middleware(['auth', 'accountant'])->group(function () {
     Route::get('/accountant/dashboard', [RequisitionController::class, 'accountantDashboard'])->name('accountant.dashboard');
-});
+}); 
+
+// Forgot Password Routes
+Route::get('/forgot-password', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
+Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
+Route::get('/verify-security-question/{email}', [ForgotPasswordController::class, 'showSecurityQuestionForm'])->name('password.verify.form');
+Route::post('/verify-security-answer', [ForgotPasswordController::class, 'verifySecurityAnswer'])->name('password.verify');
+Route::get('/reset-password/{token}/{email}', [ForgotPasswordController::class, 'showResetForm'])->name('password.reset.form');
+Route::post('/reset-password', [ForgotPasswordController::class, 'reset'])->name('password.update');
+Auth::routes();
+
+Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');

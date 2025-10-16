@@ -11,7 +11,7 @@
         /* Background for all authenticated pages */
         body {
             background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), 
-                        url('{{ asset('images/backgrounds/around.jpg') }}') center center no-repeat fixed;
+                        url('{{ asset('images/backgrounds/back.jpg') }}') center center no-repeat fixed;
             background-size: cover;
             min-height: 100vh;
             padding-top: 56px;
@@ -19,11 +19,11 @@
         
         /* Content wrapper with semi-transparent background */
         .content-wrapper {
-            background: rgba(255, 255, 255, 0.92);
+            background: rgba(20, 18, 18, 0.92);
             border-radius: 10px;
             padding: 20px;
             margin-top: 20px;
-            box-shadow: 0 0 30px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 0 30px rgba(99, 89, 89, 0.46);
         }
         
         .navbar-brand {
