@@ -6,7 +6,8 @@ use App\Models\Requisition;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Mail;
-use App\Mail\RequisitionStatusUpdated; // ✅ Import your Mailable class
+use App\Mail\RequisitionStatusUpdated;
+use Carbon\Carbon;
 
 class RequisitionController extends Controller
 {
@@ -34,7 +35,7 @@ class RequisitionController extends Controller
             $request->only(['item_name', 'description', 'quantity', 'urgency'])
         );
 
-        // Generate requisition number
+        // Generate unique requisition number
         $requisition->update([
             'requisition_no' => 'REQ-' . now()->format('Y') . '-' . str_pad($requisition->id, 5, '0', STR_PAD_LEFT)
         ]);
@@ -110,48 +111,54 @@ class RequisitionController extends Controller
     /**
      * Accountant dashboard view (filter + search).
      */
-  public function accountantDashboard()
-{
-    // Statistics for accountant dashboard
-    $stats = [
-        'total' => Requisition::count(),
-        'pending' => Requisition::where('status', 'pending')->count(),
-        'bought' => Requisition::where('status', 'bought')->count(),
-        'done' => Requisition::where('status', 'done')->count(),
-    ];
-    
-    $query = Requisition::with('user')
-        ->whereIn('status', ['pending', 'bought', 'done']);
+    public function accountantDashboard(Request $request)
+    {
+        // ✅ Statistics
+        $stats = [
+            'total' => Requisition::count(),
+            'pending' => Requisition::where('status', 'pending')->count(),
+            'bought' => Requisition::where('status', 'bought')->count(),
+            'done' => Requisition::where('status', 'done')->count(),
+            'paid' => Requisition::where('status', 'paid')->count(),
+            'this_month' => Requisition::whereBetween('created_at', [
+                Carbon::now()->startOfMonth(),
+                Carbon::now()->endOfMonth()
+            ])->count(),
+            'high_urgency' => Requisition::where('urgency', 'high')->count(),
+        ];
 
-    // Apply search filter
-    if (request('search')) {
-        $query->where(function($q) {
-            $q->where('item_name', 'like', '%' . request('search') . '%')
-              ->orWhere('description', 'like', '%' . request('search') . '%')
-              ->orWhereHas('user', function($u) {
-                  $u->where('name', 'like', '%' . request('search') . '%');
-              });
-        });
+        // ✅ Query for actionable requisitions
+        $query = Requisition::with('user')
+            ->whereIn('status', ['pending', 'bought', 'done']);
+
+        // Search filter
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('item_name', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%")
+                  ->orWhereHas('user', fn($u) => $u->where('name', 'like', "%{$search}%"));
+            });
+        }
+
+        // Status filter
+        if ($request->filled('status') && in_array($request->status, ['pending', 'bought', 'done'])) {
+            $query->where('status', $request->status);
+        }
+
+        $requisitions = $query->latest()->paginate(15)->withQueryString();
+
+        // ✅ RETURN THE VIEW (this was missing!)
+        return view('accountant.dashboard', compact('requisitions', 'stats'));
     }
-
-    // Apply status filter
-    if (request('status')) {
-        $query->where('status', request('status'));
-    }
-
-    $requisitions = $query->latest()->paginate(15)->withQueryString();
-
-    return view('accountant.dashboard', compact('requisitions', 'stats'));
-}
 
     /**
      * Update requisition status (Accountant/Admin only).
      */
     public function updateStatus(Request $request, Requisition $requisition)
     {
-        // Authorization check
         if (!auth()->user()->isAccountant() && !auth()->user()->isAdmin()) {
-            abort(403);
+            abort(403, 'Unauthorized action.');
         }
 
         $request->validate([
@@ -160,7 +167,6 @@ class RequisitionController extends Controller
             'receipt' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
         ]);
 
-        // Define valid transitions
         $validTransitions = [
             'pending' => ['bought'],
             'bought'  => ['done'],
@@ -170,9 +176,8 @@ class RequisitionController extends Controller
         $current = $requisition->status;
         $next = $request->status;
 
-        // Enforce transition rule
         if (!in_array($next, $validTransitions[$current] ?? [])) {
-            abort(422, 'Invalid status transition.');
+            return back()->withErrors(['status' => "Invalid transition from {$current} to {$next}."]);
         }
 
         $data = [
@@ -180,25 +185,27 @@ class RequisitionController extends Controller
             'notes'  => $request->notes,
         ];
 
-        // Handle receipt upload (only when marking as "paid")
-        if ($request->hasFile('receipt')) {
+        // Handle receipt only when moving to 'paid'
+        if ($next === 'paid' && $request->hasFile('receipt')) {
             if ($requisition->receipt_path) {
                 Storage::disk('public')->delete($requisition->receipt_path);
             }
+            $data['receipt_path'] = $request->file('receipt')->store('receipts', 'public');
+        }
 
-            $path = $request->file('receipt')->store('receipts', 'public');
-            $data['receipt_path'] = $path;
+        if ($next !== 'paid' && $request->hasFile('receipt')) {
+            return back()->withErrors(['receipt' => 'Receipts can only be uploaded when marking as Paid.']);
         }
 
         $requisition->update($data);
 
-        // Send email notification
+        // Optional email
         try {
             Mail::to($requisition->user->email)->send(
                 new RequisitionStatusUpdated($requisition, auth()->user())
             );
         } catch (\Exception $e) {
-            \Log::error('Mail sending failed: ' . $e->getMessage());
+            \Log::warning('Email failed: ' . $e->getMessage());
         }
 
         return back()->with('success', 'Status updated successfully!');

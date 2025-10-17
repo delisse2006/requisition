@@ -1,122 +1,180 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="utf-8">
     <title>Requisition Report</title>
     <style>
-        @page {
-            margin: 0;
-        }
         body {
-            margin: 0;
-            padding: 0;
-            font-family: Arial, sans-serif;
-            background-image: url('{{ public_path('images/backgrounds/report-bg.jpg') }}');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
+            font-family: DejaVu Sans, sans-serif;
+            font-size: 11px;
+            margin: 25px;
+            color: #333;
+            line-height: 1.4;
         }
-        .content {
-            padding: 40px;
-            background: rgba(255, 255, 255, 0.9);
-            margin: 20px;
-            border-radius: 10px;
-        }
+
         .header {
             text-align: center;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 3px solid #2c3e50;
+            margin-bottom: 20px;
         }
-        .header h1 {
+
+        .logo {
+            max-height: 60px;
+            margin-bottom: 10px;
+        }
+
+        h2 {
+            margin: 10px 0;
             color: #2c3e50;
-            margin: 0;
-            font-size: 28px;
+            font-size: 18px;
         }
-        .header .date {
-            color: #7f8c8d;
-            font-size: 16px;
-            margin-top: 10px;
+
+        .meta {
+            font-size: 10px;
+            color: #666;
+            margin-bottom: 15px;
         }
+
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
+            margin-top: 10px;
+            font-size: 10px;
         }
-        th {
-            background-color: #34495e;
-            color: white;
-            padding: 12px 8px;
+
+        th, td {
+            border: 1px solid #666;
+            padding: 7px 8px;
             text-align: left;
+        }
+
+        th {
+            background-color: #f4f4f4;
             font-weight: bold;
+            color: #2c3e50;
         }
-        td {
-            padding: 10px 8px;
-            border-bottom: 1px solid #ecf0f1;
-        }
+
         tr:nth-child(even) {
-            background-color: #fef9f9ff;
+            background-color: #fafafa;
         }
+
+        .summary {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 2px solid #333;
+        }
+
+        .summary table {
+            width: auto;
+            margin-left: auto;
+        }
+
         .footer {
             margin-top: 30px;
             text-align: center;
-            color: #7f8c8d;
-            font-size: 14px;
-            padding-top: 20px;
-            border-top: 1px solid #ecf0f1;
+            font-size: 9px;
+            color: #777;
+            border-top: 1px solid #eee;
+            padding-top: 10px;
         }
-        .logo {
-            width: 110px;
-            height: auto;
-            margin-bottom: 20px;
+
+        .no-data {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-style: italic;
+        }
+
+        .notes-cell {
+            font-size: 9px;
+            max-width: 120px;
+            word-wrap: break-word;
         }
     </style>
 </head>
 <body>
-    <div class="content">
-        <div class="header">
-            <h1>Internal Stock Requisition Report</h1>
-            <div class="date">Generated on: {{ now()->format('F j, Y \a\t g:i A') }}</div>
+    <div class="header">
+        @if(file_exists(public_path('images/logo.png')))
+            <img src="{{ public_path('images/logo.png') }}" alt="Company Logo" class="logo">
+        @else
+            <div style="font-size: 20px; font-weight: bold; color: #2c3e50;">Stock Requisition System</div>
+        @endif
+        <h2>Requisition Report</h2>
+        <div class="meta">
+            @if($startDate && $endDate)
+                Period: {{ \Carbon\Carbon::parse($startDate)->format('F j, Y') }} to {{ \Carbon\Carbon::parse($endDate)->format('F j, Y') }}
+            @else
+                All requisitions
+            @endif
+            &nbsp;|&nbsp;
+            Generated: {{ now()->format('F j, Y \a\t g:i A') }}
         </div>
+    </div>
 
+    @if($requisitions->isEmpty())
+        <div class="no-data">No requisitions found for the selected period.</div>
+    @else
         <table>
             <thead>
                 <tr>
                     <th>Req No</th>
                     <th>Item</th>
-                    <th>Description</th>
-                    <th>Quantity</th>
+                    <th>User</th>
+                    <th>Qty</th>
                     <th>Urgency</th>
                     <th>Status</th>
-                    <th>Requested By</th>
+                    <th>Notes</th>
                     <th>Date</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach($requisitions as $r)
                 <tr>
-                    <td>{{ $r->requisition_no ?? 'N/A' }}</td>
+                    <td>{{ $r->requisition_no ?? '—' }}</td>
                     <td>{{ $r->item_name }}</td>
-                    <td>{{ \Illuminate\Support\Str::limit($r->description, 50) }}</td>
-                    <td>{{ $r->quantity }}</td>
-                    <td>
-                        <span style="background: {{ $r->urgency == 'high' ? '#e74c3c' : ($r->urgency == 'medium' ? '#f39c12' : '#27ae60') }}; 
-                              color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px;">
-                            {{ ucfirst($r->urgency) }}
-                        </span>
-                    </td>
+                    <td>{{ $r->user->name ?? 'Unknown' }}</td>
+                    <td class="text-center">{{ $r->quantity }}</td>
+                    <td>{{ ucfirst($r->urgency) }}</td>
                     <td>{{ ucfirst($r->status) }}</td>
-                    <td>{{ $r->user->name }}</td>
+                    <td class="notes-cell">{{ $r->notes ?? '—' }}</td>
                     <td>{{ $r->created_at->format('Y-m-d') }}</td>
                 </tr>
                 @endforeach
             </tbody>
         </table>
 
-        <div class="footer">
-            <p>Generated by Stock Requisition Management System</p>
-            <p>Total Requisitions: {{ $requisitions->count() }}</p>
+        <!-- Summary Totals -->
+        <div class="summary">
+            <table>
+                <tr>
+                    <th>Total Requisitions:</th>
+                    <td>{{ $requisitions->count() }}</td>
+                </tr>
+                <tr>
+                    <th>Pending:</th>
+                    <td>{{ $requisitions->where('status', 'pending')->count() }}</td>
+                </tr>
+                <tr>
+                    <th>Bought:</th>
+                    <td>{{ $requisitions->where('status', 'bought')->count() }}</td>
+                </tr>
+                <tr>
+                    <th>Done:</th>
+                    <td>{{ $requisitions->where('status', 'done')->count() }}</td>
+                </tr>
+                <tr>
+                    <th>Paid (Completed):</th>
+                    <td>{{ $requisitions->where('status', 'paid')->count() }}</td>
+                </tr>
+                <tr>
+                    <th>Total Quantity:</th>
+                    <td>{{ $requisitions->sum('quantity') }}</td>
+                </tr>
+            </table>
         </div>
+    @endif
+
+    <div class="footer">
+        Confidential – Generated by Stock Requisition System
     </div>
 </body>
 </html>

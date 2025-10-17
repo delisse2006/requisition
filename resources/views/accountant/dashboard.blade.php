@@ -8,7 +8,6 @@
             <h2 class="mb-0">Accountant Dashboard</h2>
             <p class="text-muted mb-0">Welcome back, {{ auth()->user()->name }}!</p>
         </div>
-        <!-- Accountants don't create requisitions, so no "New Requisition" button -->
     </div>
 
     <!-- Stats Cards -->
@@ -39,15 +38,15 @@
             </div>
         </div>
         
-        <!-- Completed Requests -->
+        <!-- Completed Requests (Paid) -->
         <div class="col-xl-2 col-lg-3 col-md-6">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body text-center">
                     <div class="icon-circle bg-success text-white mb-3 mx-auto" style="width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
                         <i class="fas fa-check-circle fa-2x"></i>
                     </div>
-                    <h3 class="mb-0">{{ $stats['completed'] ?? 0 }}</h3>
-                    <p class="text-muted mb-0">Completed</p>
+                    <h3 class="mb-0">{{ $stats['paid'] ?? 0 }}</h3>
+                    <p class="text-muted mb-0">Completed (Paid)</p>
                 </div>
             </div>
         </div>
@@ -93,12 +92,31 @@
         </div>
     </div>
 
+    <!-- Filters -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <form method="GET" class="d-flex gap-2">
+                <input type="text" name="search" value="{{ request('search') }}" class="form-control" placeholder="Search item, description, or employee...">
+                <select name="status" class="form-select" style="max-width: 180px;">
+                    <option value="">All Statuses</option>
+                    <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>Pending</option>
+                    <option value="bought" {{ request('status') === 'bought' ? 'selected' : '' }}>Bought</option>
+                    <option value="done" {{ request('status') === 'done' ? 'selected' : '' }}>Done</option>
+                </select>
+                <button type="submit" class="btn btn-primary">Filter</button>
+                @if(request()->anyFilled(['search', 'status']))
+                    <a href="{{ route('accountant.dashboard') }}" class="btn btn-outline-secondary">Clear</a>
+                @endif
+            </form>
+        </div>
+    </div>
+
     <!-- Recent Requisitions Table -->
     <div class="row">
         <div class="col-12">
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-white border-0 py-3">
-                    <h4 class="mb-0">Recent Requisitions Requiring Action</h4>
+                    <h4 class="mb-0">Requisitions Requiring Action</h4>
                 </div>
                 <div class="card-body p-0">
                     @if(session('success'))
@@ -113,8 +131,8 @@
                             <div class="mb-3">
                                 <i class="fas fa-inbox" style="font-size: 4rem; color: #dee2e6;"></i>
                             </div>
-                            <h4 class="mt-3">No pending requisitions</h4>
-                            <p>All requests are up to date.</p>
+                            <h4 class="mt-3">No requisitions need your attention</h4>
+                            <p>All pending, bought, and done requests are up to date.</p>
                         </div>
                     @else
                         <div class="table-responsive">
@@ -131,7 +149,13 @@
                                 </thead>
                                 <tbody>
                                     @foreach($requisitions as $req)
-                                    <tr class="{{ $req->urgency == 'high' ? 'table-danger' : ($req->urgency == 'medium' ? 'table-warning' : '') }}">
+                                    {{-- ✅ Added title with notes for tooltip --}}
+                                    <tr 
+                                        class="{{ $req->urgency == 'high' ? 'table-danger' : ($req->urgency == 'medium' ? 'table-warning' : '') }}"
+                                        title="{{ $req->notes ?: 'No notes' }}"
+                                        data-bs-toggle="tooltip"
+                                        data-bs-placement="top"
+                                    >
                                         <td>
                                             <div class="d-flex align-items-center">
                                                 <div class="me-3">
@@ -169,14 +193,14 @@
                                                 {{ ucfirst($req->status) }}
                                             </span>
                                             @if($req->status === 'done' && $req->received_confirmed)
-                                                <span class="badge bg-success ms-1">
+                                                <span class="badge bg-success ms-1" title="Employee confirmed receipt">
                                                     <i class="fas fa-check-circle"></i>
                                                 </span>
                                             @endif
                                         </td>
                                         <td>
                                             <div class="d-flex align-items-center">
-                                                <img src="{{ $req->user->avatar_small_url ?? asset('images/default-avatar.png') }}" 
+                                                <img src="{{ $req->user->avatar_small_url }}" 
                                                      alt="{{ $req->user->name }}" 
                                                      class="rounded-circle me-2" 
                                                      width="24" 
@@ -307,4 +331,18 @@
     font-weight: 500;
 }
 </style>
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl, {
+                html: false,
+                trigger: 'hover'
+            });
+        });
+    });
+</script>
+@endpush
 @endsection

@@ -44,10 +44,16 @@ Route::middleware('auth')->group(function () {
         Route::get('/admin/summary', [ReportController::class, 'summary'])->name('admin.reports.summary');
     });
 });
+Route::middleware(['auth', 'role:admin|accountant'])->group(function () {
+    Route::get('/reports/pdf', [ReportController::class, 'exportPDF'])->name('reports.pdf');
+});
 
 // Accountant routes
 Route::middleware('role:accountant,admin')->group(function () {
     Route::get('/accountant/dashboard', [RequisitionController::class, 'accountantDashboard'])->name('accountant.dashboard');
+});
+Route::middleware(['auth', 'role:admin|accountant'])->group(function () {
+    Route::get('/reports/pdf', [ReportController::class, 'exportPDF'])->name('reports.pdf');
 });
 
 // Existing requisition routes (ensure update-status exists)
@@ -67,3 +73,10 @@ Route::post('/reset-password', [ForgotPasswordController::class, 'reset'])->name
 Auth::routes();
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+
+// routes/web.php
+Route::middleware(['auth', 'role:admin|accountant'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+    Route::get('/reports/pdf', [ReportController::class, 'exportPDF'])->name('reports.pdf');
+    Route::get('/reports/summary', [ReportController::class, 'summary'])->name('reports.summary');
+});
