@@ -1,67 +1,114 @@
-<?php
+@extends('layouts.app')
 
-namespace App\Http\Controllers;
+@section('content')
+<div class="row justify-content-center min-vh-100 align-items-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header text-center">
+                <h4><i class="fas fa-key me-2"></i>Forgot Password</h4>
+            </div>
+            <div class="card-body">
+                @if(session('status'))
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i class="fas fa-check-circle me-2"></i>{{ session('status') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                @endif
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Password;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Auth\Events\PasswordReset;
-use Illuminate\Support\Str;
+                @if($errors->any())
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        <ul class="mb-0">
+                            @foreach($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                @endif
 
-class ForgotPasswordController extends Controller
-{
-    // Show the "forgot password" form
-    public function showLinkRequestForm()
-    {
-        return view('auth.passwords.email');
-    }
+                <p class="text-muted text-center mb-4">
+                    Enter your email address and we'll send you a link to reset your password.
+                </p>
 
-    // Handle the sending of reset link email
-    public function sendResetLinkEmail(Request $request)
-    {
-        $request->validate(['email' => 'required|email']);
+                <form method="POST" action="{{ route('password.email') }}">
+                    @csrf
+                    <div class="mb-3">
+                        <label for="email" class="form-label fw-semibold">Email Address</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0">
+                                <i class="fas fa-envelope text-muted"></i>
+                            </span>
+                            <input type="email" 
+                                   name="email" 
+                                   id="email"
+                                   class="form-control border-start-0 @error('email') is-invalid @enderror" 
+                                   value="{{ old('email') }}" 
+                                   required
+                                   placeholder="Enter your email"
+                                   autocomplete="email">
+                            @error('email')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary w-100 py-3 fw-bold">
+                        <i class="fas fa-paper-plane me-2"></i>Send Password Reset Link
+                    </button>
+                </form>
+                
+                <div class="text-center mt-4">
+                    <a href="{{ route('login') }}" class="text-decoration-none">
+                        <i class="fas fa-arrow-left me-1"></i>Back to Login
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
-        $status = Password::sendResetLink(
-            $request->only('email')
-        );
-
-        return $status === Password::RESET_LINK_SENT
-            ? back()->with(['status' => __($status)])
-            : back()->withErrors(['email' => __($status)]);
-    }
-
-    // Show the reset password form (the link user gets in email)
-    public function showResetForm(Request $request, $token = null)
-    {
-        return view('auth.passwords.reset', [
-            'token' => $token,
-            'email' => $request->email
-        ]);
-    }
-
-    // Handle the actual password reset
-    public function reset(Request $request)
-    {
-        $request->validate([
-            'token' => 'required',
-            'email' => 'required|email',
-            'password' => 'required|min:8|confirmed',
-        ]);
-
-        $status = Password::reset(
-            $request->only('email', 'password', 'password_confirmation', 'token'),
-            function ($user, $password) {
-                $user->forceFill([
-                    'password' => Hash::make($password),
-                    'remember_token' => Str::random(60),
-                ])->save();
-
-                event(new PasswordReset($user));
-            }
-        );
-
-        return $status === Password::PASSWORD_RESET
-            ? redirect()->route('login')->with('status', __($status))
-            : back()->withErrors(['email' => [__($status)]]);
-    }
+<style>
+.input-group-text {
+    border-radius: 8px 0 0 8px !important;
 }
+
+.form-control {
+    border-radius: 0 8px 8px 0 !important;
+    padding: 12px 16px;
+}
+
+.card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 15px 15px 0 0 !important;
+    border: none;
+}
+
+.btn-primary {
+    padding: 12px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+.alert {
+    border-radius: 10px;
+}
+
+.form-control:focus {
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.25);
+    border-color: #667eea;
+}
+</style>
+@endsection

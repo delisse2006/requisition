@@ -115,7 +115,7 @@ class User extends Authenticatable
     public function getAvatarUrlAttribute(): string
     {
         if ($this->avatar) {
-            return asset('images/avatars/' . $this->avatar);
+            return asset('storage/avatars/' . $this->avatar);
         }
 
         $name = urlencode($this->name);
@@ -125,10 +125,10 @@ class User extends Authenticatable
     public function getAvatarSmallUrlAttribute(): string
     {
         if ($this->avatar) {
-            return asset('images/avatars/' . $this->avatar);
+            return asset('storage/avatars/' . $this->avatar);
         }
 
         $name = urlencode($this->name);
-        return "https://ui-avatars.com/api/?name={$name}&size=32"; // ✅ Removed extra spaces
+        return "https://ui-avatars.com/api/?name={$name}&size=32"; // ✅ FIXED: Removed extra spaces
     }
 }

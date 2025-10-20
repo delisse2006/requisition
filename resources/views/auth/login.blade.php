@@ -38,6 +38,13 @@
                 <p class="text-muted">Sign in to continue to your dashboard</p>
             </div>
             
+            @if(session('status'))
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="fas fa-check-circle me-2"></i>{{ session('status') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            @endif
+            
             <form method="POST" action="{{ route('login') }}" class="animate__animated animate__fadeInUp">
                 @csrf
                 <div class="mb-4">
@@ -52,7 +59,8 @@
                                name="email" 
                                value="{{ old('email') }}" 
                                required
-                               placeholder="Enter your email">
+                               placeholder="Enter your email"
+                               autocomplete="email">
                         @error('email')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -66,21 +74,27 @@
                             <i class="fas fa-lock text-muted"></i>
                         </span>
                         <input type="password" 
-                               class="form-control border-start-0" 
+                               class="form-control @error('password') is-invalid @enderror border-start-0" 
                                id="password" 
                                name="password" 
                                required
-                               placeholder="Enter your password">
+                               placeholder="Enter your password"
+                               autocomplete="current-password">
+                        @error('password')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
                 </div>
                 
                 <div class="mb-3 d-flex justify-content-between align-items-center">
-    <div class="form-check">
-        <input type="checkbox" name="remember" class="form-check-input" id="remember">
-        <label class="form-check-label" for="remember">Remember me</label>
-    </div>
-    <a href="{{ route('password.request') }}" class="text-decoration-none">Forgot Password?</a>
-</div>
+                    <div class="form-check">
+                        <input type="checkbox" name="remember" class="form-check-input" id="remember">
+                        <label class="form-check-label" for="remember">Remember me</label>
+                    </div>
+                    <a href="{{ route('password.request') }}" class="text-decoration-none text-primary fw-medium">
+                        <i class="fas fa-key me-1"></i>Forgot Password?
+                    </a>
+                </div>
                 
                 <button type="submit" class="btn btn-primary w-100 py-3 fw-bold fs-5">
                     <i class="fas fa-sign-in-alt me-2"></i>Sign In
