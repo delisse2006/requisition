@@ -17,18 +17,6 @@
                     </p>
                 </div>
                 
-                @if($errors->any())
-                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        <i class="fas fa-exclamation-circle me-2"></i>
-                        <ul class="mb-0">
-                            @foreach($errors->all() as $error)
-                                <li>{{ $error }}</li>
-                            @endforeach
-                        </ul>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
-                @endif
-
                 <div class="alert alert-info">
                     <h6 class="alert-heading"><i class="fas fa-question-circle me-2"></i>Security Question</h6>
                     <p class="mb-0">{{ $securityQuestion }}</p>
@@ -38,7 +26,7 @@
                     @csrf
                     <input type="hidden" name="email" value="{{ $email }}">
                     
-                    <div class="mb-4">
+                    <div class="mb-3">
                         <label for="security_answer" class="form-label fw-semibold">Your Answer</label>
                         <div class="input-group">
                             <span class="input-group-text bg-white border-end-0">
@@ -47,15 +35,14 @@
                             <input type="password" 
                                    name="security_answer" 
                                    id="security_answer"
-                                   class="form-control border-start-0 @error('security_answer') is-invalid @enderror" 
+                                   class="form-control @error('security_answer') is-invalid @enderror border-start-0" 
                                    required
-                                   placeholder="Enter your answer"
-                                   autocomplete="off">
-                            @error('security_answer')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                                   placeholder="Enter your answer">
                         </div>
                         <div class="form-text">Answer is case-sensitive</div>
+                        @error('security_answer')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
                     
                     <button type="submit" class="btn btn-primary w-100 py-3 fw-bold">
@@ -72,58 +59,4 @@
         </div>
     </div>
 </div>
-
-<style>
-.card {
-    border: none;
-    border-radius: 15px;
-    box-shadow: 0 0 30px rgba(0, 0, 0, 0.1);
-}
-
-.card-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border-radius: 15px 15px 0 0 !important;
-    border: none;
-}
-
-.input-group-text {
-    border-radius: 8px 0 0 8px !important;
-}
-
-.form-control {
-    border-radius: 0 8px 8px 0 !important;
-    padding: 12px 16px;
-}
-
-.btn-primary {
-    padding: 12px;
-    font-size: 1rem;
-    transition: all 0.3s ease;
-}
-
-.btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-}
-
-.alert {
-    border-radius: 10px;
-}
-
-.alert-info {
-    background-color: #e3f2fd;
-    border-color: #bbdefb;
-    color: #1565c0;
-}
-
-.form-control:focus {
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.25);
-    border-color: #667eea;
-}
-
-.alert-heading {
-    font-weight: 600;
-}
-</style>
 @endsection

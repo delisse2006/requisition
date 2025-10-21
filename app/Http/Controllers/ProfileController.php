@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ProfileController extends Controller
 {
@@ -39,10 +40,14 @@ class ProfileController extends Controller
             }
         }
 
-        // Save new avatar
+        // Generate unique filename
         $extension = $file->getClientOriginalExtension();
         $filename = 'avatar_' . $user->id . '_' . time() . '.' . $extension;
+        
+        // Move file to avatars directory
         $file->move(public_path('images/avatars'), $filename);
+        
+        // Update user's avatar field
         $user->avatar = $filename;
     }
 }

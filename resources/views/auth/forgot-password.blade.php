@@ -16,14 +16,12 @@
                 @endif
 
                 @if($errors->any())
-                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        <i class="fas fa-exclamation-circle me-2"></i>
+                    <div class="alert alert-danger">
                         <ul class="mb-0">
                             @foreach($errors->all() as $error)
                                 <li>{{ $error }}</li>
                             @endforeach
                         </ul>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
                 @endif
 
@@ -42,11 +40,10 @@
                             <input type="email" 
                                    name="email" 
                                    id="email"
-                                   class="form-control border-start-0 @error('email') is-invalid @enderror" 
+                                   class="form-control @error('email') is-invalid @enderror border-start-0" 
                                    value="{{ old('email') }}" 
                                    required
-                                   placeholder="Enter your email"
-                                   autocomplete="email">
+                                   placeholder="Enter your email">
                             @error('email')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -67,48 +64,4 @@
         </div>
     </div>
 </div>
-
-<style>
-.input-group-text {
-    border-radius: 8px 0 0 8px !important;
-}
-
-.form-control {
-    border-radius: 0 8px 8px 0 !important;
-    padding: 12px 16px;
-}
-
-.card {
-    border: none;
-    border-radius: 15px;
-    box-shadow: 0 0 30px rgba(0, 0, 0, 0.1);
-}
-
-.card-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border-radius: 15px 15px 0 0 !important;
-    border: none;
-}
-
-.btn-primary {
-    padding: 12px;
-    font-size: 1rem;
-    transition: all 0.3s ease;
-}
-
-.btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-}
-
-.alert {
-    border-radius: 10px;
-}
-
-.form-control:focus {
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.25);
-    border-color: #667eea;
-}
-</style>
 @endsection

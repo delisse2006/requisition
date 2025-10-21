@@ -11,14 +11,13 @@
         
         @if(auth()->user()->isEmployee())
             <a href="{{ route('requisitions.create') }}" class="btn btn-primary btn-lg">
-                <i class="fas fa-plus me-2"></i>New Requisition
+                <i class="fas fa-plus me-2"></i> New Requisition
             </a>
         @endif
     </div>
 
-    <!-- Stats Cards -->
+    <!-- Statistics Cards -->
     <div class="row g-4 mb-4">
-        <!-- Total Requisitions -->
         <div class="col-xl-2 col-lg-3 col-md-6">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body text-center">
@@ -31,7 +30,6 @@
             </div>
         </div>
         
-        <!-- Pending Requests -->
         <div class="col-xl-2 col-lg-3 col-md-6">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body text-center">
@@ -44,33 +42,42 @@
             </div>
         </div>
         
-        <!-- Completed Requests -->
-        <div class="col-xl-2 col-lg-3 col-md-6">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center">
-                    <div class="icon-circle bg-success text-white mb-3 mx-auto" style="width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-check-circle fa-2x"></i>
-                    </div>
-                    <h3 class="mb-0">{{ $stats['completed'] }}</h3>
-                    <p class="text-muted mb-0">Completed</p>
-                </div>
-            </div>
-        </div>
-        
-        <!-- This Month -->
         <div class="col-xl-2 col-lg-3 col-md-6">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body text-center">
                     <div class="icon-circle bg-info text-white mb-3 mx-auto" style="width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-calendar-alt fa-2x"></i>
+                        <i class="fas fa-shopping-cart fa-2x"></i>
                     </div>
-                    <h3 class="mb-0">{{ $stats['this_month'] }}</h3>
-                    <p class="text-muted mb-0">This Month</p>
+                    <h3 class="mb-0">{{ $stats['bought'] }}</h3>
+                    <p class="text-muted mb-0">Bought</p>
                 </div>
             </div>
         </div>
         
-        <!-- High Urgency -->
+        <div class="col-xl-2 col-lg-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="icon-circle bg-primary text-white mb-3 mx-auto" style="width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-check-circle fa-2x"></i>
+                    </div>
+                    <h3 class="mb-0">{{ $stats['done'] }}</h3>
+                    <p class="text-muted mb-0">Done</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-2 col-lg-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="icon-circle bg-success text-white mb-3 mx-auto" style="width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-money-bill-wave fa-2x"></i>
+                    </div>
+                    <h3 class="mb-0">{{ $stats['paid'] }}</h3>
+                    <p class="text-muted mb-0">Paid</p>
+                </div>
+            </div>
+        </div>
+        
         <div class="col-xl-2 col-lg-3 col-md-6">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body text-center">
@@ -82,22 +89,6 @@
                 </div>
             </div>
         </div>
-        
-        <!-- Quick Actions (for Accountants/Admins) -->
-        @if(auth()->user()->isAccountant() || auth()->user()->isAdmin())
-        <div class="col-xl-2 col-lg-3 col-md-6">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center">
-                    <div class="icon-circle bg-purple text-white mb-3 mx-auto" style="width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                        <i class="fas fa-tasks fa-2x"></i>
-                    </div>
-                    <a href="{{ route('accountant.dashboard') }}" class="btn btn-outline-primary btn-sm w-100 mt-2">
-                        <i class="fas fa-calculator me-1"></i>Accountant View
-                    </a>
-                </div>
-            </div>
-        </div>
-        @endif
     </div>
 
     <!-- Main Content -->
@@ -115,6 +106,13 @@
                         </div>
                     @endif
 
+                    @if(session('error'))
+                        <div class="alert alert-danger alert-dismissible fade show m-3" role="alert">
+                            <i class="fas fa-exclamation-circle me-2"></i>{{ session('error') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    @endif
+
                     @if($requisitions->isEmpty())
                         <div class="text-center py-5">
                             <div class="mb-3">
@@ -123,65 +121,35 @@
                             <h4 class="mt-3">No requisitions found</h4>
                             @if(auth()->user()->isEmployee())
                                 <p>Click "New Requisition" to submit your first request.</p>
+                            @else
+                                <p>No requisitions match your current view.</p>
                             @endif
                         </div>
                     @else
                         <div class="table-responsive">
-                            <table class="table table-hover mb-0">
+                            <table class="table table-hover align-middle mb-0">
                                 <thead class="table-light">
                                     <tr>
-                                        <th width="25%">Item</th>
-                                        <th width="10%">Qty</th>
-                                        <th width="15%">Urgency</th>
-                                        <th width="15%">Status</th>
-                                        <th width="20%">Requested By</th>
-                                        <th width="15%">Actions</th>
+                                        <th>Req No</th>
+                                        <th>Item</th>
+                                        <th>User</th>
+                                        <th>Qty</th>
+                                        <th>Urgency</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @foreach($requisitions as $req)
-                                    <tr class="{{ $req->urgency == 'high' ? 'table-danger' : ($req->urgency == 'medium' ? 'table-warning' : '') }}">
+                                    <tr>
                                         <td>
-                                            <div class="d-flex align-items-center">
-                                                <div class="me-3">
-                                                    @if($req->receipt_path)
-                                                        <i class="fas fa-file-invoice text-success"></i>
-                                                    @else
-                                                        <i class="fas fa-box text-muted"></i>
-                                                    @endif
-                                                </div>
-                                                <div>
-                                                    <strong>{{ $req->item_name }}</strong>
-                                                    <div class="text-muted small">{{ \Illuminate\Support\Str::limit($req->description, 40) }}</div>
-                                                </div>
+                                            <span class="badge bg-secondary">{{ $req->requisition_no ?? 'N/A' }}</span>
+                                        </td>
+                                        <td>
+                                            <strong>{{ $req->item_name }}</strong>
+                                            <div class="text-muted small mt-1">
+                                                {{ \Illuminate\Support\Str::limit($req->description, 50) }}
                                             </div>
-                                        </td>
-                                        <td>
-                                            <span class="badge bg-secondary">{{ $req->quantity }}</span>
-                                        </td>
-                                        <td>
-                                            <span class="badge bg-{{ $req->urgency == 'high' ? 'danger' : ($req->urgency == 'medium' ? 'warning' : 'success') }} text-white">
-                                                {{ ucfirst($req->urgency) }}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            @php
-                                                $statusColors = [
-                                                    'pending' => 'secondary',
-                                                    'bought' => 'info',
-                                                    'done' => 'primary',
-                                                    'paid' => 'success'
-                                                ];
-                                                $statusColor = $statusColors[$req->status] ?? 'secondary';
-                                            @endphp
-                                            <span class="badge bg-{{ $statusColor }} text-white">
-                                                {{ ucfirst($req->status) }}
-                                            </span>
-                                            @if($req->status === 'done' && $req->received_confirmed)
-                                                <span class="badge bg-success ms-1">
-                                                    <i class="fas fa-check-circle"></i>
-                                                </span>
-                                            @endif
                                         </td>
                                         <td>
                                             @if(auth()->user()->isEmployee())
@@ -198,52 +166,79 @@
                                                 </div>
                                             @endif
                                         </td>
+                                        <td>{{ $req->quantity }}</td>
                                         <td>
-                                            <div class="d-flex gap-1">
-                                                @if(auth()->user()->isEmployee() && $req->status === 'pending')
-                                                    <a href="{{ route('requisitions.edit', $req) }}" 
-                                                       class="btn btn-sm btn-outline-primary" 
-                                                       title="Edit">
-                                                        <i class="fas fa-edit"></i>
-                                                    </a>
-                                                    <form action="{{ route('requisitions.destroy', $req) }}" 
-                                                          method="POST" 
-                                                          class="d-inline"
-                                                          onsubmit="return confirm('Delete this requisition?');">
-                                                        @csrf
-                                                        @method('DELETE')
-                                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
-                                                            <i class="fas fa-trash"></i>
-                                                        </button>
-                                                    </form>
-                                                @elseif(auth()->user()->isEmployee() && $req->status === 'done' && !$req->received_confirmed)
-                                                    <form action="{{ route('requisitions.confirm', $req) }}" 
-                                                          method="POST" 
-                                                          class="d-inline">
-                                                        @csrf
-                                                        <button type="submit" class="btn btn-sm btn-success" title="Confirm Receipt">
-                                                            <i class="fas fa-check"></i>
-                                                        </button>
-                                                    </form>
+                                            <span class="badge bg-{{ $req->urgency == 'high' ? 'danger' : ($req->urgency == 'medium' ? 'warning' : 'success') }} rounded-pill px-3 py-2">
+                                                {{ ucfirst($req->urgency) }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-{{ $req->status == 'pending' ? 'secondary' : ($req->status == 'bought' ? 'info' : ($req->status == 'done' ? 'primary' : 'success')) }} rounded-pill px-3 py-2">
+                                                {{ ucfirst($req->status) }}
+                                            </span>
+                                            
+                                            @if($req->status === 'done' && $req->received_confirmed)
+                                                <span class="badge bg-success rounded-pill px-3 py-2 ms-1">
+                                                    <i class="fas fa-check-circle me-1"></i>Received
+                                                </span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            <div class="d-flex flex-wrap gap-2">
+                                                {{-- Employee Actions --}}
+                                                @if(auth()->user()->isEmployee())
+                                                    @if($req->status === 'pending')
+                                                        <a href="{{ route('requisitions.edit', $req) }}" 
+                                                           class="btn btn-sm btn-outline-primary" 
+                                                           title="Edit requisition">
+                                                            <i class="fas fa-edit"></i>
+                                                        </a>
+                                                        
+                                                        <form action="{{ route('requisitions.destroy', $req) }}" 
+                                                              method="POST" 
+                                                              class="d-inline"
+                                                              onsubmit="return confirm('Are you sure you want to delete this requisition?');">
+                                                            @csrf
+                                                            @method('DELETE')
+                                                            <button type="submit" 
+                                                                    class="btn btn-sm btn-outline-danger" 
+                                                                    title="Delete requisition">
+                                                                <i class="fas fa-trash"></i>
+                                                            </button>
+                                                        </form>
+                                                    @elseif($req->status === 'done' && !$req->received_confirmed)
+                                                        <form action="{{ route('requisitions.confirm', $req) }}" 
+                                                              method="POST" 
+                                                              class="d-inline">
+                                                            @csrf
+                                                            <button type="submit" 
+                                                                    class="btn btn-sm btn-success" 
+                                                                    title="Confirm receipt of items">
+                                                                <i class="fas fa-check me-1"></i>Confirm Receipt
+                                                            </button>
+                                                        </form>
+                                                    @endif
                                                 @endif
 
+                                                {{-- Accountant/Admin Actions --}}
                                                 @if(auth()->user()->isAccountant() || auth()->user()->isAdmin())
                                                     @if(in_array($req->status, ['pending', 'bought', 'done']))
                                                         <button type="button" 
                                                                 class="btn btn-sm btn-info" 
                                                                 data-bs-toggle="modal" 
                                                                 data-bs-target="#updateModal{{ $req->id }}"
-                                                                title="Update Status">
-                                                            <i class="fas fa-sync-alt"></i>
+                                                                title="Update status">
+                                                            <i class="fas fa-sync-alt me-1"></i>Update
                                                         </button>
                                                     @endif
                                                 @endif
 
+                                                {{-- View Receipt --}}
                                                 @if($req->receipt_path)
                                                     <a href="{{ asset('storage/' . $req->receipt_path) }}" 
                                                        target="_blank" 
                                                        class="btn btn-sm btn-outline-secondary"
-                                                       title="View Receipt">
+                                                       title="View receipt">
                                                         <i class="fas fa-file-invoice"></i>
                                                     </a>
                                                 @endif
@@ -251,16 +246,16 @@
                                         </td>
                                     </tr>
 
-                                    <!-- Update Status Modal -->
+                                    {{-- Update Status Modal --}}
                                     @if(auth()->user()->isAccountant() || auth()->user()->isAdmin())
-                                    <div class="modal fade" id="updateModal{{ $req->id }}" tabindex="-1">
+                                    <div class="modal fade" id="updateModal{{ $req->id }}" tabindex="-1" aria-hidden="true">
                                         <div class="modal-dialog">
                                             <form method="POST" action="{{ route('requisitions.update-status', $req) }}" enctype="multipart/form-data">
                                                 @csrf
                                                 <div class="modal-content">
                                                     <div class="modal-header">
                                                         <h5 class="modal-title">Update: {{ $req->item_name }}</h5>
-                                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                                     </div>
                                                     <div class="modal-body">
                                                         <div class="mb-3">
@@ -275,19 +270,27 @@
                                                                 @endif
                                                             </select>
                                                         </div>
+
                                                         <div class="mb-3">
                                                             <label class="form-label">Notes (Optional)</label>
-                                                            <textarea name="notes" class="form-control" rows="3">{{ $req->notes }}</textarea>
+                                                            <textarea name="notes" class="form-control" rows="3">{{ old('notes', $req->notes) }}</textarea>
                                                         </div>
+
                                                         @if($req->status == 'done')
                                                         <div class="mb-3">
                                                             <label class="form-label">Upload Payment Receipt</label>
-                                                            <input type="file" name="receipt" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
+                                                            <input type="file" 
+                                                                   name="receipt" 
+                                                                   class="form-control" 
+                                                                   accept=".pdf,.jpg,.jpeg,.png">
                                                             @if($req->receipt_path)
                                                                 <div class="mt-2">
                                                                     <small class="text-muted">
                                                                         Current: 
-                                                                        <a href="{{ asset('storage/'.$req->receipt_path) }}" target="_blank">View Receipt</a>
+                                                                        <a href="{{ asset('storage/'.$req->receipt_path) }}" 
+                                                                           target="_blank">
+                                                                            View Receipt
+                                                                        </a>
                                                                     </small>
                                                                 </div>
                                                             @endif
@@ -344,15 +347,27 @@
 
 .btn-sm {
     padding: 0.25rem 0.5rem;
-    font-size: 0.70rem;
+    font-size: 0.75rem;
 }
 
 .badge {
     font-weight: 500;
 }
-
-.bg-purple {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-}
 </style>
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Enhanced delete confirmation
+    const deleteForms = document.querySelectorAll('form[method="POST"][onsubmit]');
+    deleteForms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            if (!confirm('Are you sure? This action cannot be undone.')) {
+                e.preventDefault();
+            }
+        });
+    });
+});
+</script>
+@endpush
 @endsection

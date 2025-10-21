@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Controllers;
-
+namespace App\Http\Controllers\Admin;
+use App\Http\Controllers\Controller;
 use App\Models\Requisition;
 use App\Models\User;
-use Barryvdh\DomPDF\Facade\Pdf; // ✅ Correct facade (capital 'P')
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
@@ -15,13 +15,38 @@ class ReportController extends Controller
      */
     public function index(Request $request)
     {
-        $requisitions = Requisition::with('user')
-            ->when($request->filled('status'), function ($query) use ($request) {
-                $query->where('status', $request->status);
-            })
-            ->latest()
-            ->paginate(20)
-            ->withQueryString();
+        $query = Requisition::with('user');
+
+        // Apply status filter
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Apply date range filter
+        if ($request->filled('start_date') && $request->filled('end_date')) {
+            try {
+                $startDate = Carbon::parse($request->start_date)->startOfDay();
+                $endDate = Carbon::parse($request->end_date)->endOfDay();
+                $query->whereBetween('created_at', [$startDate, $endDate]);
+            } catch (\Exception $e) {
+                // Invalid date format - ignore filter
+            }
+        }
+
+        // Apply search filter
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('item_name', 'like', '%' . $search . '%')
+                  ->orWhere('description', 'like', '%' . $search . '%')
+                  ->orWhere('requisition_no', 'like', '%' . $search . '%')
+                  ->orWhereHas('user', function ($u) use ($search) {
+                      $u->where('name', 'like', '%' . $search . '%');
+                  });
+            });
+        }
+
+        $requisitions = $query->latest()->paginate(20)->withQueryString();
 
         return view('admin.reports.index', compact('requisitions'));
     }
@@ -31,28 +56,48 @@ class ReportController extends Controller
      */
     public function exportPDF(Request $request)
     {
-        $startDate = $request->query('start');
-        $endDate = $request->query('end');
+        $query = Requisition::with('user');
 
-        $query = Requisition::with('user')->orderBy('created_at', 'desc');
+        // Apply status filter
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
 
-        // Apply date range filter if both dates are provided and valid
-        if ($startDate && $endDate) {
+        // Apply date range filter
+        if ($request->filled('start_date') && $request->filled('end_date')) {
             try {
-                $start = Carbon::parse($startDate)->startOfDay();
-                $end = Carbon::parse($endDate)->endOfDay();
-                $query->whereBetween('created_at', [$start, $end]);
+                $startDate = Carbon::parse($request->start_date)->startOfDay();
+                $endDate = Carbon::parse($request->end_date)->endOfDay();
+                $query->whereBetween('created_at', [$startDate, $endDate]);
             } catch (\Exception $e) {
-                // Invalid date format — ignore filter
+                // Invalid date format - ignore filter
             }
         }
 
-        $requisitions = $query->get();
+        // Apply search filter
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('item_name', 'like', '%' . $search . '%')
+                  ->orWhere('description', 'like', '%' . $search . '%')
+                  ->orWhere('requisition_no', 'like', '%' . $search . '%')
+                  ->orWhereHas('user', function ($u) use ($search) {
+                      $u->where('name', 'like', '%' . $search . '%');
+                  });
+            });
+        }
+
+        $requisitions = $query->orderBy('created_at', 'desc')->get();
 
         $pdf = Pdf::loadView('admin.reports.pdf', [
             'requisitions' => $requisitions,
-            'startDate' => $startDate,
-            'endDate' => $endDate,
+            'filters' => [
+                'status' => $request->status,
+                'start_date' => $request->start_date,
+                'end_date' => $request->end_date,
+                'search' => $request->search,
+            ],
+            'generated_at' => now()->format('F j, Y \a\t g:i A')
         ]);
 
         return $pdf->download('requisition-report-' . now()->format('Y-m-d') . '.pdf');
@@ -63,20 +108,52 @@ class ReportController extends Controller
      */
     public function summary()
     {
+        // Requisition statistics
         $totalRequisitions = Requisition::count();
         $pendingRequisitions = Requisition::where('status', 'pending')->count();
-        $completedRequisitions = Requisition::where('status', 'paid')->count();
+        $boughtRequisitions = Requisition::where('status', 'bought')->count();
+        $doneRequisitions = Requisition::where('status', 'done')->count();
+        $paidRequisitions = Requisition::where('status', 'paid')->count();
+        
+        // User statistics
         $totalUsers = User::count();
         $employees = User::where('role', 'employee')->count();
         $accountants = User::where('role', 'accountant')->count();
+        $admins = User::where('role', 'admin')->count();
+        
+        // Monthly statistics
+        $thisMonthRequisitions = Requisition::whereMonth('created_at', now()->month)
+            ->whereYear('created_at', now()->year)
+            ->count();
+            
+        $thisMonthUsers = User::whereMonth('created_at', now()->month)
+            ->whereYear('created_at', now()->year)
+            ->count();
+            
+        // Recent activity
+        $recentRequisitions = Requisition::with('user')
+            ->latest()
+            ->take(10)
+            ->get();
+            
+        $recentUsers = User::latest()
+            ->take(10)
+            ->get();
 
         return view('admin.reports.summary', compact(
             'totalRequisitions',
             'pendingRequisitions',
-            'completedRequisitions',
+            'boughtRequisitions',
+            'doneRequisitions',
+            'paidRequisitions',
             'totalUsers',
             'employees',
-            'accountants'
+            'accountants',
+            'admins',
+            'thisMonthRequisitions',
+            'thisMonthUsers',
+            'recentRequisitions',
+            'recentUsers'
         ));
     }
 }

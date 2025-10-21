@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Password;
+use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Support\Str;
 
 class ForgotPasswordController extends Controller
@@ -31,6 +31,10 @@ class ForgotPasswordController extends Controller
         ]);
 
         $user = User::where('email', $request->email)->first();
+
+        if (!$user || !$user->security_question) {
+            return back()->withErrors(['email' => 'Security question not set up for this account. Please contact administrator.']);
+        }
 
         // Store email in session for security question step
         session(['password_reset_email' => $request->email]);
@@ -144,8 +148,12 @@ class ForgotPasswordController extends Controller
         }
 
         // Update password
-        $user->password = Hash::make($request->password);
-        $user->save();
+        $user->forceFill([
+            'password' => Hash::make($request->password),
+            'remember_token' => Str::random(60),
+        ])->save();
+
+        event(new PasswordReset($user));
 
         // Clear session
         session()->forget(['password_reset_token', 'password_reset_email']);

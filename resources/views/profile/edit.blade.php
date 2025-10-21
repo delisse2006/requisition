@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container mt-4">
+<div class="container">
     <div class="row justify-content-center">
         <div class="col-md-8">
             <div class="card">
@@ -54,13 +54,20 @@
 
 @push('scripts')
 <script>
-document.getElementById('avatar-input').addEventListener('change', function(e) {
-    if (e.target.files && e.target.files[0]) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            document.getElementById('avatar-preview').src = e.target.result;
-        }
-        reader.readAsDataURL(e.target.files[0]);
+document.addEventListener('DOMContentLoaded', function() {
+    const avatarInput = document.getElementById('avatar-input');
+    const avatarPreview = document.getElementById('avatar-preview');
+    
+    if (avatarInput && avatarPreview) {
+        avatarInput.addEventListener('change', function(e) {
+            if (e.target.files && e.target.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    avatarPreview.src = e.target.result;
+                }
+                reader.readAsDataURL(e.target.files[0]);
+            }
+        });
     }
 });
 </script>

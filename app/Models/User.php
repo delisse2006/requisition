@@ -67,10 +67,10 @@ class User extends Authenticatable
     /**
      * Verify the provided security answer.
      */
-    public function verifySecurityAnswer(string $answer): bool
-    {
-        return Hash::check($answer, $this->security_answer);
-    }
+    public function verifySecurityAnswer($answer)
+{
+    return \Illuminate\Support\Facades\Hash::check($answer, $this->security_answer);
+}
 
     /**
      * Automatically hash the security answer when set.
@@ -112,23 +112,23 @@ class User extends Authenticatable
     // AVATAR URL ACCESSORS
     // ======================
 
-    public function getAvatarUrlAttribute(): string
-    {
-        if ($this->avatar) {
-            return asset('storage/avatars/' . $this->avatar);
-        }
-
-        $name = urlencode($this->name);
-        return "https://ui-avatars.com/api/?name={$name}&color=7F9CF5&background=EBF4FF&size=128";
+    
+// Add these methods if missing
+public function getAvatarUrlAttribute()
+{
+    if ($this->avatar) {
+        return asset('images/avatars/' . $this->avatar);
     }
+    $name = urlencode($this->name);
+    return "https://ui-avatars.com/api/?name={$name}&color=7F9CF5&background=EBF4FF&size=128";
+}
 
-    public function getAvatarSmallUrlAttribute(): string
-    {
-        if ($this->avatar) {
-            return asset('storage/avatars/' . $this->avatar);
-        }
-
-        $name = urlencode($this->name);
-        return "https://ui-avatars.com/api/?name={$name}&size=32"; // ✅ FIXED: Removed extra spaces
+public function getAvatarSmallUrlAttribute()
+{
+    if ($this->avatar) {
+        return asset('images/avatars/' . $this->avatar);
     }
+    $name = urlencode($this->name);
+    return "https://ui-avatars.com/?name={$name}&size=32";
+}
 }
