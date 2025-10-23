@@ -4,39 +4,20 @@
     <meta charset="UTF-8">
     <title>Requisition Report</title>
     <style>
-        @page {
-            margin: 0;
-        }
         body {
-            margin: 0;
-            padding: 0;
             font-family: Arial, sans-serif;
-            background-image: url('{{ public_path('images/backgrounds/report-bg.jpg') }}');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-        }
-        .content {
-            padding: 40px;
-            background: rgba(255, 255, 255, 0.9);
             margin: 20px;
-            border-radius: 10px;
+            color: #333;
         }
         .header {
             text-align: center;
             margin-bottom: 30px;
             padding-bottom: 20px;
-            border-bottom: 3px solid #2c3e50;
+            border-bottom: 2px solid #dee2e6;
         }
         .header h1 {
             color: #2c3e50;
             margin: 0;
-            font-size: 28px;
-        }
-        .header .date {
-            color: #7f8c8d;
-            font-size: 16px;
-            margin-top: 10px;
         }
         table {
             width: 100%;
@@ -44,79 +25,85 @@
             margin-top: 20px;
         }
         th {
-            background-color: #34495e;
-            color: white;
+            background-color: #f8f9fa;
             padding: 12px 8px;
             text-align: left;
             font-weight: bold;
+            border: 1px solid #dee2e6;
         }
         td {
             padding: 10px 8px;
-            border-bottom: 1px solid #ecf0f1;
-        }
-        tr:nth-child(even) {
-            background-color: #fef9f9ff;
+            border: 1px solid #dee2e6;
         }
         .footer {
             margin-top: 30px;
             text-align: center;
-            color: #7f8c8d;
-            font-size: 14px;
-            padding-top: 20px;
-            border-top: 1px solid #ecf0f1;
+            color: #6c757d;
+            font-size: 0.9em;
         }
-        .logo {
-            width: 110px;
-            height: auto;
-            margin-bottom: 20px;
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: bold;
         }
+        .status-pending { background-color: #6c757d; color: white; }
+        .status-bought { background-color: #17a2b8; color: white; }
+        .status-done { background-color: #007bff; color: white; }
+        .status-paid { background-color: #28a745; color: white; }
+        .urgency-high { background-color: #dc3545; color: white; }
+        .urgency-medium { background-color: #ffc107; color: black; }
+        .urgency-low { background-color: #28a745; color: white; }
     </style>
 </head>
 <body>
-    <div class="content">
-        <div class="header">
-            <h1>Internal Stock Requisition Report</h1>
-            <div class="date">Generated on: {{ now()->format('F j, Y \a\t g:i A') }}</div>
-        </div>
+    <div class="header">
+        <h1>Requisition Report</h1>
+        <p>Generated on: {{ now()->format('F j, Y \a\t g:i A') }}</p>
+    </div>
 
-        <table>
-            <thead>
-                <tr>
-                    <th>Req No</th>
-                    <th>Item</th>
-                    <th>Description</th>
-                    <th>Quantity</th>
-                    <th>Urgency</th>
-                    <th>Status</th>
-                    <th>Requested By</th>
-                    <th>Date</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($requisitions as $r)
-                <tr>
-                    <td>{{ $r->requisition_no ?? 'N/A' }}</td>
-                    <td>{{ $r->item_name }}</td>
-                    <td>{{ \Illuminate\Support\Str::limit($r->description, 50) }}</td>
-                    <td>{{ $r->quantity }}</td>
-                    <td>
-                        <span style="background: {{ $r->urgency == 'high' ? '#e74c3c' : ($r->urgency == 'medium' ? '#f39c12' : '#27ae60') }}; 
-                              color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px;">
-                            {{ ucfirst($r->urgency) }}
+    <table>
+        <thead>
+            <tr>
+                <th>Req No</th>
+                <th>Item</th>
+                <th>User</th>
+                <th>Qty</th>
+                <th>Urgency</th>
+                <th>Status</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach($requisitions as $req)
+            <tr>
+                <td>{{ $req->requisition_no ?? 'N/A' }}</td>
+                <td>{{ $req->item_name }}</td>
+                <td>{{ $req->user->name }}</td>
+                <td>{{ $req->quantity }}</td>
+                <td>
+                    <span class="status-badge urgency-{{ $req->urgency }}">
+                        {{ ucfirst($req->urgency) }}
+                    </span>
+                </td>
+                <td>
+                    <span class="status-badge status-{{ $req->status }}">
+                        {{ ucfirst($req->status) }}
+                    </span>
+                    @if($req->status === 'done' && $req->received_confirmed)
+                        <span class="status-badge status-paid">
+                            Received
                         </span>
-                    </td>
-                    <td>{{ ucfirst($r->status) }}</td>
-                    <td>{{ $r->user->name }}</td>
-                    <td>{{ $r->created_at->format('Y-m-d') }}</td>
-                </tr>
-                @endforeach
-            </tbody>
-        </table>
+                    @endif
+                </td>
+                <td>{{ $req->created_at->format('Y-m-d') }}</td>
+            </tr>
+            @endforeach
+        </tbody>
+    </table>
 
-        <div class="footer">
-            <p>Generated by Stock Requisition Management System</p>
-            <p>Total Requisitions: {{ $requisitions->count() }}</p>
-        </div>
+    <div class="footer">
+        <p>Generated by Stock Requisition System • {{ now()->format('Y-m-d H:i:s') }}</p>
     </div>
 </body>
 </html>

@@ -15,13 +15,20 @@ class UserFactory extends Factory
      *
      * @return array<string, mixed>
      */
-    public function definition()
+       public function definition(): array
     {
+        $questions = User::getSecurityQuestions();
+        $question = $this->faker->randomElement($questions);
+        $answer = $this->faker->word;
+
         return [
-            'name' => fake()->name(),
-            'email' => fake()->unique()->safeEmail(),
+            'name' => $this->faker->name(),
+            'email' => $this->faker->unique()->safeEmail(),
             'email_verified_at' => now(),
-            'password' => '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password
+            'password' => Hash::make('password'), // All test users use 'password'
+            'role' => 'employee',
+            'security_question' => $question,
+            'security_answer' => Hash::make($answer),
             'remember_token' => Str::random(10),
         ];
     }

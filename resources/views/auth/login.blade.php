@@ -38,8 +38,32 @@
                 <p class="text-muted">Sign in to continue to your dashboard</p>
             </div>
             
-            <form method="POST" action="{{ route('login') }}" class="animate__animated animate__fadeInUp">
-                @csrf
+            @if(session('status'))
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="fas fa-check-circle me-2"></i>{{ session('status') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            @endif
+            
+            @if(session('error'))
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="fas fa-exclamation-circle me-2"></i>{{ session('error') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            @endif
+            
+            @if($errors->any())
+                <div class="alert alert-danger">
+                    <ul class="mb-0">
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+            
+            <form method="POST" action="{{ route('login') }}" class="animate__animated animate__fadeInUp" autocomplete="off">
+                @csrf <!-- ✅ CRITICAL: Prevents 419 errors -->
                 <div class="mb-4">
                     <label for="email" class="form-label fw-semibold">Email Address</label>
                     <div class="input-group">
@@ -52,7 +76,8 @@
                                name="email" 
                                value="{{ old('email') }}" 
                                required
-                               placeholder="Enter your email">
+                               placeholder="Enter your email"
+                               autocomplete="off">
                         @error('email')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -66,24 +91,29 @@
                             <i class="fas fa-lock text-muted"></i>
                         </span>
                         <input type="password" 
-                               class="form-control border-start-0" 
+                               class="form-control @error('password') is-invalid @enderror border-start-0" 
                                id="password" 
                                name="password" 
                                required
-                               placeholder="Enter your password">
+                               placeholder="Enter your password"
+                               autocomplete="off">
+                        @error('password')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
                 </div>
                 
                 <div class="mb-3 d-flex justify-content-between align-items-center">
-    <div class="form-check">
-        <input type="checkbox" name="remember" class="form-check-input" id="remember">
-        <label class="form-check-label" for="remember">Remember me</label>
-    </div>
-    <a href="{{ route('password.request') }}" class="text-decoration-none">Forgot Password?</a>
-</div>
+                    <div class="form-check">
+                        <input type="checkbox" name="remember" class="form-check-input" id="remember" {{ old('remember') ? 'checked' : '' }}>
+                        <label class="form-check-label" for="remember">Remember me</label>
+                    </div>
+                    <!-- ✅ REMOVED BROKEN PASSWORD RESET LINK -->
+                </div>
                 
-                <button type="submit" class="btn btn-primary w-100 py-3 fw-bold fs-5">
-                    <i class="fas fa-sign-in-alt me-2"></i>Sign In
+                <button type="submit" class="btn btn-primary w-100 py-3 fw-bold fs-5" id="loginBtn">
+                    <span class="spinner-border spinner-border-sm d-none" role="status" id="loginSpinner"></span>
+                    <span id="loginText"><i class="fas fa-sign-in-alt me-2"></i>Sign In</span>
                 </button>
             </form>
             
@@ -152,4 +182,30 @@
     }
 }
 </style>
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Login button loading state
+    const loginForm = document.querySelector('form[method="POST"]');
+    const loginBtn = document.getElementById('loginBtn');
+    const loginSpinner = document.getElementById('loginSpinner');
+    const loginText = document.getElementById('loginText');
+    
+    if (loginForm) {
+        loginForm.addEventListener('submit', function() {
+            loginSpinner.classList.remove('d-none');
+            loginText.classList.add('d-none');
+            loginBtn.disabled = true;
+        });
+    }
+    
+    // Disable browser autocomplete
+    const inputs = document.querySelectorAll('input[autocomplete="off"]');
+    inputs.forEach(input => {
+        input.setAttribute('autocomplete', 'off');
+    });
+});
+</script>
+@endpush
 @endsection
