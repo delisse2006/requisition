@@ -8,14 +8,31 @@
                 <h4><i class="fas fa-unlock-alt me-2"></i>Reset Password</h4>
             </div>
             <div class="card-body">
+                @if(session('status'))
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i class="fas fa-check-circle me-2"></i>{{ session('status') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                @endif
+
+                @if($errors->any())
+                    <div class="alert alert-danger">
+                        <ul class="mb-0">
+                            @foreach($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
                 <p class="text-muted text-center mb-4">
                     Enter your new password below.
                 </p>
 
                 <form method="POST" action="{{ route('password.update') }}">
                     @csrf
-                    <input type="hidden" name="email" value="{{ $email }}">
                     <input type="hidden" name="token" value="{{ $token }}">
+                    <input type="hidden" name="email" value="{{ $email }}">
 
                     <div class="mb-3">
                         <label for="password" class="form-label fw-semibold">New Password</label>

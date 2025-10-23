@@ -63,7 +63,7 @@
             @endif
             
             <form method="POST" action="{{ route('login') }}" class="animate__animated animate__fadeInUp" autocomplete="off">
-                @csrf
+                @csrf <!-- ✅ CRITICAL: Prevents 419 errors -->
                 <div class="mb-4">
                     <label for="email" class="form-label fw-semibold">Email Address</label>
                     <div class="input-group">
@@ -108,7 +108,7 @@
                         <input type="checkbox" name="remember" class="form-check-input" id="remember" {{ old('remember') ? 'checked' : '' }}>
                         <label class="form-check-label" for="remember">Remember me</label>
                     </div>
-                    <!-- ✅ REMOVED PASSWORD RESET LINK (route doesn't exist) -->
+                    <!-- ✅ REMOVED BROKEN PASSWORD RESET LINK -->
                 </div>
                 
                 <button type="submit" class="btn btn-primary w-100 py-3 fw-bold fs-5" id="loginBtn">

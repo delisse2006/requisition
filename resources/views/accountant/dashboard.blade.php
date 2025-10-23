@@ -8,6 +8,9 @@
             <h2 class="mb-0">Accountant Dashboard</h2>
             <p class="text-muted mb-0">Welcome back, {{ auth()->user()->name }}!</p>
         </div>
+        <a href="{{ route('reports.pdf') }}" class="btn btn-success">
+            <i class="fas fa-file-pdf me-1"></i> Export PDF
+        </a>
     </div>
 
     <!-- Stats Cards -->
@@ -38,28 +41,41 @@
             </div>
         </div>
         
-        <!-- Completed Requests (Paid) -->
-        <div class="col-xl-2 col-lg-3 col-md-6">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center">
-                    <div class="icon-circle bg-success text-white mb-3 mx-auto" style="width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-check-circle fa-2x"></i>
-                    </div>
-                    <h3 class="mb-0">{{ $stats['paid'] ?? 0 }}</h3>
-                    <p class="text-muted mb-0">Completed (Paid)</p>
-                </div>
-            </div>
-        </div>
-        
-        <!-- This Month -->
+        <!-- Bought Requests -->
         <div class="col-xl-2 col-lg-3 col-md-6">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body text-center">
                     <div class="icon-circle bg-info text-white mb-3 mx-auto" style="width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-calendar-alt fa-2x"></i>
+                        <i class="fas fa-shopping-cart fa-2x"></i>
                     </div>
-                    <h3 class="mb-0">{{ $stats['this_month'] ?? 0 }}</h3>
-                    <p class="text-muted mb-0">This Month</p>
+                    <h3 class="mb-0">{{ $stats['bought'] ?? 0 }}</h3>
+                    <p class="text-muted mb-0">Bought</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Done Requests -->
+        <div class="col-xl-2 col-lg-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="icon-circle bg-primary text-white mb-3 mx-auto" style="width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-check-circle fa-2x"></i>
+                    </div>
+                    <h3 class="mb-0">{{ $stats['done'] ?? 0 }}</h3>
+                    <p class="text-muted mb-0">Done</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Paid Requests -->
+        <div class="col-xl-2 col-lg-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="icon-circle bg-success text-white mb-3 mx-auto" style="width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-money-bill-wave fa-2x"></i>
+                    </div>
+                    <h3 class="mb-0">{{ $stats['paid'] ?? 0 }}</h3>
+                    <p class="text-muted mb-0">Paid</p>
                 </div>
             </div>
         </div>
@@ -76,20 +92,6 @@
                 </div>
             </div>
         </div>
-        
-        <!-- Back to Main Dashboard -->
-        <div class="col-xl-2 col-lg-3 col-md-6">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center">
-                    <div class="icon-circle bg-secondary text-white mb-3 mx-auto" style="width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-home fa-2x"></i>
-                    </div>
-                    <a href="{{ route('dashboard') }}" class="btn btn-outline-secondary btn-sm w-100 mt-2">
-                        <i class="fas fa-arrow-left me-1"></i>Main Dashboard
-                    </a>
-                </div>
-            </div>
-        </div>
     </div>
 
     <!-- Filters -->
@@ -99,9 +101,10 @@
                 <input type="text" name="search" value="{{ request('search') }}" class="form-control" placeholder="Search item, description, or employee...">
                 <select name="status" class="form-select" style="max-width: 180px;">
                     <option value="">All Statuses</option>
-                    <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>Pending</option>
-                    <option value="bought" {{ request('status') === 'bought' ? 'selected' : '' }}>Bought</option>
-                    <option value="done" {{ request('status') === 'done' ? 'selected' : '' }}>Done</option>
+                    <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
+                    <option value="bought" {{ request('status') == 'bought' ? 'selected' : '' }}>Bought</option>
+                    <option value="done" {{ request('status') == 'done' ? 'selected' : '' }}>Done</option>
+                    <option value="paid" {{ request('status') == 'paid' ? 'selected' : '' }}>Paid</option>
                 </select>
                 <button type="submit" class="btn btn-primary">Filter</button>
                 @if(request()->anyFilled(['search', 'status']))
@@ -126,77 +129,46 @@
                         </div>
                     @endif
 
+                    @if(session('error'))
+                        <div class="alert alert-danger alert-dismissible fade show m-3" role="alert">
+                            <i class="fas fa-exclamation-circle me-2"></i>{{ session('error') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    @endif
+
                     @if($requisitions->isEmpty())
                         <div class="text-center py-5">
                             <div class="mb-3">
                                 <i class="fas fa-inbox" style="font-size: 4rem; color: #dee2e6;"></i>
                             </div>
-                            <h4 class="mt-3">No requisitions need your attention</h4>
-                            <p>All pending, bought, and done requests are up to date.</p>
+                            <h4 class="mt-3">No requisitions found</h4>
+                            <p>No requisitions match your current view.</p>
                         </div>
                     @else
                         <div class="table-responsive">
-                            <table class="table table-hover mb-0">
+                            <table class="table table-hover align-middle mb-0">
                                 <thead class="table-light">
                                     <tr>
-                                        <th width="25%">Item</th>
-                                        <th width="10%">Qty</th>
-                                        <th width="15%">Urgency</th>
-                                        <th width="15%">Status</th>
-                                        <th width="20%">Requested By</th>
-                                        <th width="15%">Actions</th>
+                                        <th>Req No</th>
+                                        <th>Item</th>
+                                        <th>User</th>
+                                        <th>Qty</th>
+                                        <th>Urgency</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @foreach($requisitions as $req)
-                                    {{-- ✅ Added title with notes for tooltip --}}
-                                    <tr 
-                                        class="{{ $req->urgency == 'high' ? 'table-danger' : ($req->urgency == 'medium' ? 'table-warning' : '') }}"
-                                        title="{{ $req->notes ?: 'No notes' }}"
-                                        data-bs-toggle="tooltip"
-                                        data-bs-placement="top"
-                                    >
+                                    <tr>
                                         <td>
-                                            <div class="d-flex align-items-center">
-                                                <div class="me-3">
-                                                    @if($req->receipt_path)
-                                                        <i class="fas fa-file-invoice text-success"></i>
-                                                    @else
-                                                        <i class="fas fa-box text-muted"></i>
-                                                    @endif
-                                                </div>
-                                                <div>
-                                                    <strong>{{ $req->item_name }}</strong>
-                                                    <div class="text-muted small">{{ \Illuminate\Support\Str::limit($req->description, 40) }}</div>
-                                                </div>
+                                            <span class="badge bg-secondary">{{ $req->requisition_no ?? 'N/A' }}</span>
+                                        </td>
+                                        <td>
+                                            <strong>{{ $req->item_name }}</strong>
+                                            <div class="text-muted small mt-1">
+                                                {{ \Illuminate\Support\Str::limit($req->description, 50) }}
                                             </div>
-                                        </td>
-                                        <td>
-                                            <span class="badge bg-secondary">{{ $req->quantity }}</span>
-                                        </td>
-                                        <td>
-                                            <span class="badge bg-{{ $req->urgency == 'high' ? 'danger' : ($req->urgency == 'medium' ? 'warning' : 'success') }} text-white">
-                                                {{ ucfirst($req->urgency) }}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            @php
-                                                $statusColors = [
-                                                    'pending' => 'secondary',
-                                                    'bought' => 'info',
-                                                    'done' => 'primary',
-                                                    'paid' => 'success'
-                                                ];
-                                                $statusColor = $statusColors[$req->status] ?? 'secondary';
-                                            @endphp
-                                            <span class="badge bg-{{ $statusColor }} text-white">
-                                                {{ ucfirst($req->status) }}
-                                            </span>
-                                            @if($req->status === 'done' && $req->received_confirmed)
-                                                <span class="badge bg-success ms-1" title="Employee confirmed receipt">
-                                                    <i class="fas fa-check-circle"></i>
-                                                </span>
-                                            @endif
                                         </td>
                                         <td>
                                             <div class="d-flex align-items-center">
@@ -209,6 +181,22 @@
                                                 <span>{{ $req->user->name }}</span>
                                             </div>
                                         </td>
+                                        <td>{{ $req->quantity }}</td>
+                                        <td>
+                                            <span class="badge bg-{{ $req->urgency == 'high' ? 'danger' : ($req->urgency == 'medium' ? 'warning' : 'success') }} rounded-pill px-3 py-2">
+                                                {{ ucfirst($req->urgency) }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-{{ $req->status == 'pending' ? 'secondary' : ($req->status == 'bought' ? 'info' : ($req->status == 'done' ? 'primary' : 'success')) }} rounded-pill px-3 py-2">
+                                                {{ ucfirst($req->status) }}
+                                            </span>
+                                            @if($req->status === 'done' && $req->received_confirmed)
+                                                <span class="badge bg-success rounded-pill px-3 py-2 ms-1">
+                                                    <i class="fas fa-check-circle me-1"></i>Received
+                                                </span>
+                                            @endif
+                                        </td>
                                         <td>
                                             <div class="d-flex gap-1">
                                                 @if(in_array($req->status, ['pending', 'bought', 'done']))
@@ -216,8 +204,8 @@
                                                             class="btn btn-sm btn-info" 
                                                             data-bs-toggle="modal" 
                                                             data-bs-target="#updateModal{{ $req->id }}"
-                                                            title="Update Status">
-                                                        <i class="fas fa-sync-alt"></i>
+                                                            title="Update status">
+                                                        <i class="fas fa-sync-alt me-1"></i>Update
                                                     </button>
                                                 @endif
 
@@ -225,7 +213,7 @@
                                                     <a href="{{ asset('storage/' . $req->receipt_path) }}" 
                                                        target="_blank" 
                                                        class="btn btn-sm btn-outline-secondary"
-                                                       title="View Receipt">
+                                                       title="View receipt">
                                                         <i class="fas fa-file-invoice"></i>
                                                     </a>
                                                 @endif
@@ -234,14 +222,15 @@
                                     </tr>
 
                                     <!-- Update Status Modal -->
-                                    <div class="modal fade" id="updateModal{{ $req->id }}" tabindex="-1">
+                                    @if(in_array($req->status, ['pending', 'bought', 'done']))
+                                    <div class="modal fade" id="updateModal{{ $req->id }}" tabindex="-1" aria-hidden="true">
                                         <div class="modal-dialog">
                                             <form method="POST" action="{{ route('requisitions.update-status', $req) }}" enctype="multipart/form-data">
                                                 @csrf
                                                 <div class="modal-content">
                                                     <div class="modal-header">
                                                         <h5 class="modal-title">Update: {{ $req->item_name }}</h5>
-                                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                                     </div>
                                                     <div class="modal-body">
                                                         <div class="mb-3">
@@ -256,19 +245,27 @@
                                                                 @endif
                                                             </select>
                                                         </div>
+
                                                         <div class="mb-3">
                                                             <label class="form-label">Notes (Optional)</label>
-                                                            <textarea name="notes" class="form-control" rows="3">{{ $req->notes }}</textarea>
+                                                            <textarea name="notes" class="form-control" rows="3">{{ old('notes', $req->notes) }}</textarea>
                                                         </div>
+
                                                         @if($req->status == 'done')
                                                         <div class="mb-3">
                                                             <label class="form-label">Upload Payment Receipt</label>
-                                                            <input type="file" name="receipt" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
+                                                            <input type="file" 
+                                                                   name="receipt" 
+                                                                   class="form-control" 
+                                                                   accept=".pdf,.jpg,.jpeg,.png">
                                                             @if($req->receipt_path)
                                                                 <div class="mt-2">
                                                                     <small class="text-muted">
                                                                         Current: 
-                                                                        <a href="{{ asset('storage/'.$req->receipt_path) }}" target="_blank">View Receipt</a>
+                                                                        <a href="{{ asset('storage/'.$req->receipt_path) }}" 
+                                                                           target="_blank">
+                                                                            View Receipt
+                                                                        </a>
                                                                     </small>
                                                                 </div>
                                                             @endif
@@ -277,19 +274,23 @@
                                                     </div>
                                                     <div class="modal-footer">
                                                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                                        <button type="submit" class="btn btn-primary">Update Status</button>
+                                                        <button type="submit" class="btn btn-primary">
+                                                            <span class="spinner-border spinner-border-sm d-none" role="status" id="updateSpinner{{ $req->id }}"></span>
+                                                            <span id="updateText{{ $req->id }}">Update Status</span>
+                                                        </button>
                                                     </div>
                                                 </div>
                                             </form>
                                         </div>
                                     </div>
+                                    @endif
                                     @endforeach
                                 </tbody>
                             </table>
                         </div>
 
                         <div class="card-footer bg-white border-0 py-3">
-                            {{ $requisitions->links() }}
+                            {{ $requisitions->appends(request()->query())->links() }}
                         </div>
                     @endif
                 </div>
@@ -324,7 +325,7 @@
 
 .btn-sm {
     padding: 0.25rem 0.5rem;
-    font-size: 0.70rem;
+    font-size: 0.75rem;
 }
 
 .badge {
@@ -334,15 +335,43 @@
 
 @push('scripts')
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-        tooltipTriggerList.map(function (tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl, {
-                html: false,
-                trigger: 'hover'
+document.addEventListener('DOMContentLoaded', function() {
+    // Add loading states to all update forms
+    @foreach($requisitions as $req)
+        @if(in_array($req->status, ['pending', 'bought', 'done']))
+        const form{{ $req->id }} = document.querySelector('form[action="{{ route('requisitions.update-status', $req) }}"]');
+        if (form{{ $req->id }}) {
+            form{{ $req->id }}.addEventListener('submit', function() {
+                const spinner = document.getElementById('updateSpinner{{ $req->id }}');
+                const text = document.getElementById('updateText{{ $req->id }}');
+                const submitBtn = this.querySelector('button[type="submit"]');
+                
+                if (spinner && text) {
+                    spinner.classList.remove('d-none');
+                    text.classList.add('d-none');
+                    submitBtn.disabled = true;
+                }
             });
-        });
+        }
+        @endif
+    @endforeach
+    
+    // Preserve filter parameters when paginating
+    const paginationLinks = document.querySelectorAll('.pagination a');
+    paginationLinks.forEach(link => {
+        const url = new URL(link.href);
+        const params = new URLSearchParams(window.location.search);
+        
+        // Add current filters to pagination links
+        for (const [key, value] of params) {
+            if (value && !url.searchParams.has(key)) {
+                url.searchParams.append(key, value);
+            }
+        }
+        
+        link.href = url.toString();
     });
+});
 </script>
 @endpush
 @endsection
