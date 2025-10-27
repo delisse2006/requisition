@@ -110,23 +110,23 @@ class RequisitionController extends Controller
     }
 
     /**
-     * Confirm receipt by requester once requisition is done.
-     */
-    public function confirmReceipt(Requisition $requisition)
-    {
-        // ✅ SECURITY: Only the requester can confirm
-        if (auth()->id() !== $requisition->user_id) {
-            abort(403);
-        }
-
-        // ✅ VALIDATION: Only confirm if status is 'done' and not already confirmed
-        if ($requisition->status !== 'done' || $requisition->received_confirmed) {
-            abort(403, 'You can only confirm receipt for completed items that haven\'t been confirmed yet.');
-        }
-
-        $requisition->update(['received_confirmed' => true]);
-        return back()->with('success', 'Receipt confirmed! Thank you.');
+ * Confirm receipt by requester once requisition is done.
+ */
+public function confirmReceipt(Requisition $requisition)
+{
+    // ✅ SECURITY: Only the requester can confirm
+    if (auth()->id() !== $requisition->user_id) {
+        abort(403);
     }
+
+    // ✅ VALIDATION: Only confirm if status is 'done' and not already confirmed
+    if ($requisition->status !== 'done' || $requisition->received_confirmed) {
+        abort(403, 'You can only confirm receipt for completed items that haven\'t been confirmed yet.');
+    }
+
+    $requisition->update(['received_confirmed' => true]);
+    return back()->with('success', 'Receipt confirmed! Thank you.');
+}
 
     /**
      * Accountant dashboard view (filter + search).

@@ -173,16 +173,15 @@
                                             </span>
                                         </td>
                                         <td>
-                                            <span class="badge bg-{{ $req->status == 'pending' ? 'secondary' : ($req->status == 'bought' ? 'info' : ($req->status == 'done' ? 'primary' : 'success')) }} rounded-pill px-3 py-2">
-                                                {{ ucfirst($req->status) }}
-                                            </span>
-                                            
-                                            @if($req->status === 'done' && $req->received_confirmed)
-                                                <span class="badge bg-success rounded-pill px-3 py-2 ms-1">
-                                                    <i class="fas fa-check-circle me-1"></i>Received
-                                                </span>
-                                            @endif
-                                        </td>
+    <span class="badge bg-{{ $req->status_badge }} rounded-pill px-3 py-2">
+        {{ ucfirst($req->status) }}
+    </span>
+    @if($req->status === 'done' && $req->received_confirmed)
+        <span class="badge bg-success rounded-pill px-3 py-2 ms-1">
+            <i class="fas fa-check-circle me-1"></i>Received
+        </span>
+    @endif
+</td>
                                         <td>
                                             <div class="d-flex flex-wrap gap-2">
                                                 {{-- Employee Actions --}}
@@ -206,17 +205,18 @@
                                                                 <i class="fas fa-trash"></i>
                                                             </button>
                                                         </form>
-                                                    @elseif($req->status === 'done' && !$req->received_confirmed)
-                                                        <form action="{{ route('requisitions.confirm', $req) }}" 
-                                                              method="POST" 
-                                                              class="d-inline">
-                                                            @csrf
-                                                            <button type="submit" 
-                                                                    class="btn btn-sm btn-success" 
-                                                                    title="Confirm receipt of items">
-                                                                <i class="fas fa-check me-1"></i>Confirm Receipt
-                                                            </button>
-                                                        </form>
+                                                   @if($req->status === 'done' && !$req->received_confirmed)
+    <form action="{{ route('requisitions.confirm', $req) }}" 
+          method="POST" 
+          class="d-inline">
+        @csrf
+        <button type="submit" 
+                class="btn btn-sm btn-success" 
+                title="Confirm receipt of items">
+            <i class="fas fa-check me-1"></i>Confirm Receipt
+        </button>
+    </form>
+@endif
                                                     @endif
                                                 @endif
 
