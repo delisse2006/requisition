@@ -324,20 +324,25 @@
 <style>
 .icon-circle {
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    will-change: transform;
+    backface-visibility: hidden;
+    transform: translateZ(0);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .icon-circle:hover {
-    transform: translateY(-2px);
+    transform: translate3d(0, -2px, 0);
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
 }
 
 .card {
+    will-change: transform;
+    backface-visibility: hidden;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .card:hover {
-    transform: translateY(-2px);
+    transform: translate3d(0, -2px, 0);
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
 }
 
@@ -353,6 +358,24 @@
 .badge {
     font-weight: 500;
 }
+@media (prefers-reduced-motion: reduce) {
+    .icon-circle,
+    .card,
+    .table-hover tbody tr {
+        transition: none !important;
+        transform: none !important;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .icon-circle,
+    .card,
+    .table-hover tbody tr {
+        transition: none !important;
+        transform: none !important;
+    }
+}
+
 </style>
 
 @push('scripts')

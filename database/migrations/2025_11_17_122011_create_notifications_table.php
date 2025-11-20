@@ -12,13 +12,14 @@ return new class extends Migration
      * @return void
      */
     public function up()
-{
-        Schema::table('requisitions', function (Blueprint $table) {
-            if (! Schema::hasColumn('requisitions', 'item_image')) {
-                $table->string('item_image')->nullable();
-            }
-        });
-}
+    {
+        if (! Schema::hasTable('notifications')) {
+            Schema::create('notifications', function (Blueprint $table) {
+                $table->id();
+                $table->timestamps();
+            });
+        }
+    }
 
     /**
      * Reverse the migrations.
@@ -27,8 +28,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::table('requisitions', function (Blueprint $table) {
-            //
-        });
+        Schema::dropIfExists('notifications');
     }
 };

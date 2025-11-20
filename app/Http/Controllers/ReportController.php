@@ -63,12 +63,30 @@ class ReportController extends Controller
             $query->where('status', $request->status);
         }
 
-        // Apply date range filter
-        if ($request->filled('start_date') && $request->filled('end_date')) {
+        // Apply urgency filter
+        if ($request->filled('urgency')) {
+            $query->where('urgency', $request->urgency);
+        }
+
+        // Apply date filters: support `month` (YYYY-MM) or `start_date`/`end_date`
+        if ($request->filled('month')) {
             try {
-                $startDate = Carbon::parse($request->start_date)->startOfDay();
-                $endDate = Carbon::parse($request->end_date)->endOfDay();
-                $query->whereBetween('created_at', [$startDate, $endDate]);
+                [$year, $month] = explode('-', $request->month);
+                $query->whereYear('created_at', $year)->whereMonth('created_at', $month);
+            } catch (\Throwable $e) {
+                // ignore invalid month format
+            }
+        } else {
+            try {
+                $startDate = $request->filled('start_date') ? Carbon::parse($request->start_date)->startOfDay() : null;
+                $endDate = $request->filled('end_date') ? Carbon::parse($request->end_date)->endOfDay() : null;
+                if ($startDate && $endDate) {
+                    $query->whereBetween('created_at', [$startDate, $endDate]);
+                } elseif ($startDate) {
+                    $query->whereDate('created_at', '>=', $startDate);
+                } elseif ($endDate) {
+                    $query->whereDate('created_at', '<=', $endDate);
+                }
             } catch (\Exception $e) {
                 // Invalid date format - ignore filter
             }

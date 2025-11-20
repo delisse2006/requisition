@@ -4,7 +4,7 @@
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2>Requisition Reports</h2>
-        <a href="{{ route('admin.reports.export.pdf') }}" class="btn btn-success">
+        <a href="{{ route('admin.reports.export.pdf', request()->only(['status','urgency','month','start_date','end_date'])) }}" class="btn btn-success">
             <i class="fas fa-file-pdf me-1"></i> Export PDF
         </a>
     </div>
@@ -30,6 +30,12 @@
         </div>
         <div class="col-md-3">
             <input type="month" name="month" class="form-control" value="{{ request('month') }}">
+        </div>
+        <div class="col-md-2">
+            <input type="date" name="start_date" class="form-control" value="{{ request('start_date') }}" placeholder="From">
+        </div>
+        <div class="col-md-2">
+            <input type="date" name="end_date" class="form-control" value="{{ request('end_date') }}" placeholder="To">
         </div>
         <div class="col-md-3">
             <div class="d-grid gap-2 d-md-flex">

@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\RequisitionSubmitted;
 use App\Mail\RequisitionStatusUpdated;
+use App\Models\Notification;
 
 class RequisitionController extends Controller
 {
@@ -42,13 +43,14 @@ class RequisitionController extends Controller
         'requisition_no' => 'REQ-' . now()->format('Y') . '-' . str_pad($requisition->id, 5, '0', STR_PAD_LEFT)
     ]);
 
-    // ✅ SEND EMAIL NOTIFICATIONS (WITH ERROR HANDLING)
+    // Prepare accountants list and send notifications (emails wrapped in try/catch)
+    $accountants = User::where('role', 'accountant')->get();
+
     try {
         // Notify employee
         Mail::to($requisition->user->email)->send(new RequisitionSubmitted($requisition));
 
-        // Notify all accountants
-        $accountants = User::where('role', 'accountant')->get();
+        // Notify all accountants by email
         foreach ($accountants as $accountant) {
             Mail::to($accountant->email)->send(new RequisitionSubmitted($requisition));
         }
@@ -58,8 +60,37 @@ class RequisitionController extends Controller
         // Continue without emails
     }
 
+    // Create notification for the requester (owner) — observer also creates notifications, use unique to avoid duplicates
+    Notification::createUnique([
+        'user_id' => $requisition->user_id,
+        'type' => 'requisition_submitted',
+        'title' => 'Requisition submitted',
+        'message' => "Your requisition ({$requisition->requisition_no}) has been submitted.",
+        'data' => ['requisition_id' => $requisition->id],
+    ]);
+
+    // Create notifications for accountants
+    foreach ($accountants as $accountant) {
+        Notification::createUnique([
+            'user_id' => $accountant->id,
+            'type' => 'requisition_submitted',
+            'title' => 'New requisition submitted',
+            'message' => "Requisition {$requisition->requisition_no} submitted by {$requisition->user->name}.",
+            'data' => ['requisition_id' => $requisition->id],
+        ]);
+    }
+
     return redirect()->route('dashboard')->with('success', 'Requisition submitted successfully!');
 }
+
+    /**
+     * Show a single requisition to authenticated users.
+     */
+    public function show(Requisition $requisition)
+    {
+        // Allow any authenticated user to view requisition details
+        return view('requisitions.show', compact('requisition'));
+    }
 
     /**
      * Show the requisition edit form.
@@ -125,6 +156,18 @@ class RequisitionController extends Controller
         }
 
         $requisition->update(['received_confirmed' => true]);
+
+        // Notify accountants/admin that receipt was confirmed
+        $admins = User::whereIn('role', ['accountant','admin'])->get();
+        foreach ($admins as $admin) {
+            Notification::createUnique([
+                'user_id' => $admin->id,
+                'type' => 'receipt_confirmed',
+                'title' => 'Receipt confirmed',
+                'message' => "{$requisition->user->name} confirmed receipt for {$requisition->requisition_no}.",
+                'data' => ['requisition_id' => $requisition->id],
+            ]);
+        }
         return back()->with('success', 'Receipt confirmed! Thank you.');
     }
 
@@ -140,6 +183,8 @@ class RequisitionController extends Controller
             'bought' => Requisition::where('status', 'bought')->count(),
             'done' => Requisition::where('status', 'done')->count(),
             'paid' => Requisition::where('status', 'paid')->count(),
+            // high urgency count used in several views
+            'high_urgency' => Requisition::where('urgency', 'high')->count(),
         ];
 
         // ✅ QUERY FOR ACTIONABLE REQUISITIONS
@@ -226,7 +271,32 @@ class RequisitionController extends Controller
             \Log::warning('Email failed: ' . $e->getMessage());
         }
 
+        // Create notification for the requisition owner
+        Notification::createUnique([
+            'user_id' => $requisition->user_id,
+            'type' => 'status_updated',
+            'title' => 'Requisition status updated',
+            'message' => "Status changed to {$requisition->status} by " . auth()->user()->name,
+            'data' => ['requisition_id' => $requisition->id, 'changed_by' => auth()->user()->id],
+        ]);
+
         return back()->with('success', 'Status updated successfully!');
+    }
+
+    /**
+     * Return requisition data as JSON (for AJAX refreshes).
+     */
+    public function json(Requisition $requisition)
+    {
+        // Basic fields we need on the client
+        return response()->json([
+            'id' => $requisition->id,
+            'requisition_no' => $requisition->requisition_no,
+            'status' => $requisition->status,
+            'notes' => $requisition->notes,
+            'received_confirmed' => (bool) $requisition->received_confirmed,
+            'updated_at' => $requisition->updated_at ? $requisition->updated_at->format('Y-m-d H:i') : null,
+        ]);
     }
 
     /**

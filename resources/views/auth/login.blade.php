@@ -129,13 +129,16 @@
 
 <style>
 .brand-icon {
+    will-change: transform;
+    backface-visibility: hidden;
+    transform: translateZ(0);
     animation: float 3s ease-in-out infinite;
 }
 
 @keyframes float {
-    0% { transform: translateY(0px); }
-    50% { transform: translateY(-10px); }
-    100% { transform: translateY(0px); }
+    0% { transform: translate3d(0, 0, 0); }
+    50% { transform: translate3d(0, -10px, 0); }
+    100% { transform: translate3d(0, 0, 0); }
 }
 
 .feature-item {
@@ -157,12 +160,24 @@
 }
 
 .login-container {
+    will-change: transform;
+    backface-visibility: hidden;
+    transform: translateZ(0);
     animation: slideInRight 0.6s ease-out;
 }
 
 @keyframes slideInRight {
     from { opacity: 0; transform: translateX(50px); }
     to { opacity: 1; transform: translateX(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .brand-icon,
+    .login-container,
+    .feature-item {
+        animation: none !important;
+        transition: none !important;
+    }
 }
 
 /* Responsive design */

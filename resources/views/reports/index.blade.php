@@ -18,10 +18,16 @@
             <input type="month" name="month" class="form-control" value="{{ request('month') }}">
         </div>
         <div class="col-md-2">
+            <input type="date" name="start_date" class="form-control" value="{{ request('start_date') }}" placeholder="From">
+        </div>
+        <div class="col-md-2">
+            <input type="date" name="end_date" class="form-control" value="{{ request('end_date') }}" placeholder="To">
+        </div>
+        <div class="col-md-2">
             <button type="submit" class="btn btn-primary">Filter</button>
         </div>
         <div class="col-md-2">
-            <a href="{{ route('reports.export.pdf') }}" class="btn btn-success">Export PDF</a>
+            <a href="{{ route('reports.pdf', request()->only(['status','month','start_date','end_date'])) }}" class="btn btn-success">Export PDF</a>
         </div>
     </form>
 

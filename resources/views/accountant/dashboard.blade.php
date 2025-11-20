@@ -5,121 +5,98 @@
     <!-- Header Section -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h2 class="mb-0">Accountant Dashboard</h2>
+            <h2 class="mb-0">Dashboard</h2>
             <p class="text-muted mb-0">Welcome back, {{ auth()->user()->name }}!</p>
         </div>
-        <a href="{{ route('reports.pdf') }}" class="btn btn-success">
-            <i class="fas fa-file-pdf me-1"></i> Export PDF
-        </a>
+        
+        @if(auth()->user()->isEmployee())
+            <a href="{{ route('requisitions.create') }}" class="btn btn-primary btn-lg">
+                <i class="fas fa-plus me-2"></i> New Requisition
+            </a>
+        @endif
     </div>
 
-    <!-- Stats Cards -->
+    <!-- Statistics Cards -->
     <div class="row g-4 mb-4">
-        <!-- Total Requisitions -->
         <div class="col-xl-2 col-lg-3 col-md-6">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body text-center">
                     <div class="icon-circle bg-primary text-white mb-3 mx-auto" style="width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
                         <i class="fas fa-boxes fa-2x"></i>
                     </div>
-                    <h3 class="mb-0">{{ $stats['total'] ?? 0 }}</h3>
+                    <h3 class="mb-0">{{ $stats['total'] }}</h3>
                     <p class="text-muted mb-0">Total Requests</p>
                 </div>
             </div>
         </div>
         
-        <!-- Pending Requests -->
         <div class="col-xl-2 col-lg-3 col-md-6">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body text-center">
                     <div class="icon-circle bg-warning text-white mb-3 mx-auto" style="width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
                         <i class="fas fa-clock fa-2x"></i>
                     </div>
-                    <h3 class="mb-0">{{ $stats['pending'] ?? 0 }}</h3>
+                    <h3 class="mb-0">{{ $stats['pending'] }}</h3>
                     <p class="text-muted mb-0">Pending</p>
                 </div>
             </div>
         </div>
         
-        <!-- Bought Requests -->
         <div class="col-xl-2 col-lg-3 col-md-6">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body text-center">
                     <div class="icon-circle bg-info text-white mb-3 mx-auto" style="width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
                         <i class="fas fa-shopping-cart fa-2x"></i>
                     </div>
-                    <h3 class="mb-0">{{ $stats['bought'] ?? 0 }}</h3>
+                    <h3 class="mb-0">{{ $stats['bought'] }}</h3>
                     <p class="text-muted mb-0">Bought</p>
                 </div>
             </div>
         </div>
         
-        <!-- Done Requests -->
         <div class="col-xl-2 col-lg-3 col-md-6">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body text-center">
                     <div class="icon-circle bg-primary text-white mb-3 mx-auto" style="width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
                         <i class="fas fa-check-circle fa-2x"></i>
                     </div>
-                    <h3 class="mb-0">{{ $stats['done'] ?? 0 }}</h3>
+                    <h3 class="mb-0">{{ $stats['done'] }}</h3>
                     <p class="text-muted mb-0">Done</p>
                 </div>
             </div>
         </div>
         
-        <!-- Paid Requests -->
         <div class="col-xl-2 col-lg-3 col-md-6">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body text-center">
                     <div class="icon-circle bg-success text-white mb-3 mx-auto" style="width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
                         <i class="fas fa-money-bill-wave fa-2x"></i>
                     </div>
-                    <h3 class="mb-0">{{ $stats['paid'] ?? 0 }}</h3>
+                    <h3 class="mb-0">{{ $stats['paid'] }}</h3>
                     <p class="text-muted mb-0">Paid</p>
                 </div>
             </div>
         </div>
         
-        <!-- High Urgency -->
         <div class="col-xl-2 col-lg-3 col-md-6">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body text-center">
                     <div class="icon-circle bg-danger text-white mb-3 mx-auto" style="width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
                         <i class="fas fa-exclamation-triangle fa-2x"></i>
                     </div>
-                    <h3 class="mb-0">{{ $stats['high_urgency'] ?? 0 }}</h3>
+                    <h3 class="mb-0">{{ $stats['high_urgency'] }}</h3>
                     <p class="text-muted mb-0">High Urgency</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Filters -->
-    <div class="row mb-4">
-        <div class="col-md-6">
-            <form method="GET" class="d-flex gap-2">
-                <input type="text" name="search" value="{{ request('search') }}" class="form-control" placeholder="Search item, description, or employee...">
-                <select name="status" class="form-select" style="max-width: 180px;">
-                    <option value="">All Statuses</option>
-                    <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
-                    <option value="bought" {{ request('status') == 'bought' ? 'selected' : '' }}>Bought</option>
-                    <option value="done" {{ request('status') == 'done' ? 'selected' : '' }}>Done</option>
-                    <option value="paid" {{ request('status') == 'paid' ? 'selected' : '' }}>Paid</option>
-                </select>
-                <button type="submit" class="btn btn-primary">Filter</button>
-                @if(request()->anyFilled(['search', 'status']))
-                    <a href="{{ route('accountant.dashboard') }}" class="btn btn-outline-secondary">Clear</a>
-                @endif
-            </form>
-        </div>
-    </div>
-
-    <!-- Recent Requisitions Table -->
+    <!-- Main Content -->
     <div class="row">
         <div class="col-12">
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-white border-0 py-3">
-                    <h4 class="mb-0">Requisitions Requiring Action</h4>
+                    <h4 class="mb-0">Recent Requisitions</h4>
                 </div>
                 <div class="card-body p-0">
                     @if(session('success'))
@@ -142,7 +119,11 @@
                                 <i class="fas fa-inbox" style="font-size: 4rem; color: #dee2e6;"></i>
                             </div>
                             <h4 class="mt-3">No requisitions found</h4>
-                            <p>No requisitions match your current view.</p>
+                            @if(auth()->user()->isEmployee())
+                                <p>Click "New Requisition" to submit your first request.</p>
+                            @else
+                                <p>No requisitions match your current view.</p>
+                            @endif
                         </div>
                     @else
                         <div class="table-responsive">
@@ -171,15 +152,19 @@
                                             </div>
                                         </td>
                                         <td>
-                                            <div class="d-flex align-items-center">
-                                                <img src="{{ $req->user->avatar_small_url }}" 
-                                                     alt="{{ $req->user->name }}" 
-                                                     class="rounded-circle me-2" 
-                                                     width="24" 
-                                                     height="24"
-                                                     style="object-fit: cover;">
-                                                <span>{{ $req->user->name }}</span>
-                                            </div>
+                                            @if(auth()->user()->isEmployee())
+                                                <span class="text-muted">Me</span>
+                                            @else
+                                                <div class="d-flex align-items-center">
+                                                    <img src="{{ $req->user->avatar_small_url }}" 
+                                                         alt="{{ $req->user->name }}" 
+                                                         class="rounded-circle me-2" 
+                                                         width="24" 
+                                                         height="24"
+                                                         style="object-fit: cover;">
+                                                    <span>{{ $req->user->name }}</span>
+                                                </div>
+                                            @endif
                                         </td>
                                         <td>{{ $req->quantity }}</td>
                                         <td>
@@ -191,6 +176,7 @@
                                             <span class="badge bg-{{ $req->status == 'pending' ? 'secondary' : ($req->status == 'bought' ? 'info' : ($req->status == 'done' ? 'primary' : 'success')) }} rounded-pill px-3 py-2">
                                                 {{ ucfirst($req->status) }}
                                             </span>
+                                            
                                             @if($req->status === 'done' && $req->received_confirmed)
                                                 <span class="badge bg-success rounded-pill px-3 py-2 ms-1">
                                                     <i class="fas fa-check-circle me-1"></i>Received
@@ -198,17 +184,57 @@
                                             @endif
                                         </td>
                                         <td>
-                                            <div class="d-flex gap-1">
-                                                @if(in_array($req->status, ['pending', 'bought', 'done']))
-                                                    <button type="button" 
-                                                            class="btn btn-sm btn-info" 
-                                                            data-bs-toggle="modal" 
-                                                            data-bs-target="#updateModal{{ $req->id }}"
-                                                            title="Update status">
-                                                        <i class="fas fa-sync-alt me-1"></i>Update
-                                                    </button>
+                                            <div class="d-flex flex-wrap gap-2">
+                                                {{-- Employee Actions --}}
+                                                @if(auth()->user()->isEmployee())
+                                                    @if($req->status === 'pending')
+                                                        <a href="{{ route('requisitions.edit', $req) }}" 
+                                                           class="btn btn-sm btn-outline-primary" 
+                                                           title="Edit requisition">
+                                                            <i class="fas fa-edit"></i>
+                                                        </a>
+                                                        
+                                                        <form action="{{ route('requisitions.destroy', $req) }}" 
+                                                              method="POST" 
+                                                              class="d-inline"
+                                                              onsubmit="return confirm('Are you sure you want to delete this requisition?');">
+                                                            @csrf
+                                                            @method('DELETE')
+                                                            <button type="submit" 
+                                                                    class="btn btn-sm btn-outline-danger" 
+                                                                    title="Delete requisition">
+                                                                <i class="fas fa-trash"></i>
+                                                            </button>
+                                                        </form>
+                                                    @elseif($req->status === 'done' && !$req->received_confirmed)
+                                                        <form action="{{ route('requisitions.confirm', $req) }}" 
+                                                              method="POST" 
+                                                              class="d-inline">
+                                                            @csrf
+                                                            <button type="submit" 
+                                                                    class="btn btn-sm btn-success" 
+                                                                    title="Confirm receipt of items">
+                                                                <i class="fas fa-check me-1"></i>Confirm Receipt
+                                                            </button>
+                                                        </form>
+                                                    @endif
                                                 @endif
 
+                                                {{-- Accountant/Admin Actions --}}
+                                                @if(auth()->user()->isAccountant() || auth()->user()->isAdmin())
+                                                    @if(in_array($req->status, ['pending', 'bought', 'done']))
+                                                        <a href="{{ route('requisitions.show', $req) }}" class="btn btn-sm btn-info" title="View / Update status">
+                                                            <i class="fas fa-eye me-1"></i>View
+                                                        </a>
+                                                    @endif
+                                                @endif
+
+                                                {{-- View details for everyone (authenticated) --}}
+                                                <a href="{{ route('requisitions.show', $req) }}" class="btn btn-sm btn-outline-secondary" title="View details">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+
+                                                {{-- View Receipt --}}
                                                 @if($req->receipt_path)
                                                     <a href="{{ asset('storage/' . $req->receipt_path) }}" 
                                                        target="_blank" 
@@ -221,76 +247,16 @@
                                         </td>
                                     </tr>
 
-                                    <!-- Update Status Modal -->
-                                    @if(in_array($req->status, ['pending', 'bought', 'done']))
-                                    <div class="modal fade" id="updateModal{{ $req->id }}" tabindex="-1" aria-hidden="true">
-                                        <div class="modal-dialog">
-                                            <form method="POST" action="{{ route('requisitions.update-status', $req) }}" enctype="multipart/form-data">
-                                                @csrf
-                                                <div class="modal-content">
-                                                    <div class="modal-header">
-                                                        <h5 class="modal-title">Update: {{ $req->item_name }}</h5>
-                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                    </div>
-                                                    <div class="modal-body">
-                                                        <div class="mb-3">
-                                                            <label class="form-label fw-bold">Next Status</label>
-                                                            <select name="status" class="form-select" required>
-                                                                @if($req->status == 'pending')
-                                                                    <option value="bought">Bought</option>
-                                                                @elseif($req->status == 'bought')
-                                                                    <option value="done">Done</option>
-                                                                @elseif($req->status == 'done')
-                                                                    <option value="paid">Paid</option>
-                                                                @endif
-                                                            </select>
-                                                        </div>
-
-                                                        <div class="mb-3">
-                                                            <label class="form-label">Notes (Optional)</label>
-                                                            <textarea name="notes" class="form-control" rows="3">{{ old('notes', $req->notes) }}</textarea>
-                                                        </div>
-
-                                                        @if($req->status == 'done')
-                                                        <div class="mb-3">
-                                                            <label class="form-label">Upload Payment Receipt</label>
-                                                            <input type="file" 
-                                                                   name="receipt" 
-                                                                   class="form-control" 
-                                                                   accept=".pdf,.jpg,.jpeg,.png">
-                                                            @if($req->receipt_path)
-                                                                <div class="mt-2">
-                                                                    <small class="text-muted">
-                                                                        Current: 
-                                                                        <a href="{{ asset('storage/'.$req->receipt_path) }}" 
-                                                                           target="_blank">
-                                                                            View Receipt
-                                                                        </a>
-                                                                    </small>
-                                                                </div>
-                                                            @endif
-                                                        </div>
-                                                        @endif
-                                                    </div>
-                                                    <div class="modal-footer">
-                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                                        <button type="submit" class="btn btn-primary">
-                                                            <span class="spinner-border spinner-border-sm d-none" role="status" id="updateSpinner{{ $req->id }}"></span>
-                                                            <span id="updateText{{ $req->id }}">Update Status</span>
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </div>
-                                    @endif
+                                    {{-- Update Status Modal placeholder (rendered after table to avoid invalid HTML inside tbody) --}}
                                     @endforeach
                                 </tbody>
                             </table>
                         </div>
 
+                        {{-- Modals removed: View link navigates to `requisitions.show` for full details/update --}}
+
                         <div class="card-footer bg-white border-0 py-3">
-                            {{ $requisitions->appends(request()->query())->links() }}
+                            {{ $requisitions->links() }}
                         </div>
                     @endif
                 </div>
@@ -302,20 +268,26 @@
 <style>
 .icon-circle {
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    will-change: transform;
+    backface-visibility: hidden;
+    transform: translateZ(0);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .icon-circle:hover {
-    transform: translateY(-2px);
+    transform: translate3d(0, -2px, 0);
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
 }
 
 .card {
+    will-change: transform;
+    backface-visibility: hidden;
+    transform: translateZ(0);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .card:hover {
-    transform: translateY(-2px);
+    transform: translate3d(0, -2px, 0);
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
 }
 
@@ -331,45 +303,37 @@
 .badge {
     font-weight: 500;
 }
+@media (prefers-reduced-motion: reduce) {
+    .icon-circle,
+    .card,
+    .table-hover tbody tr {
+        transition: none !important;
+        transform: none !important;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .icon-circle,
+    .card,
+    .table-hover tbody tr {
+        transition: none !important;
+        transform: none !important;
+    }
+}
+
 </style>
 
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Add loading states to all update forms
-    @foreach($requisitions as $req)
-        @if(in_array($req->status, ['pending', 'bought', 'done']))
-        const form{{ $req->id }} = document.querySelector('form[action="{{ route('requisitions.update-status', $req) }}"]');
-        if (form{{ $req->id }}) {
-            form{{ $req->id }}.addEventListener('submit', function() {
-                const spinner = document.getElementById('updateSpinner{{ $req->id }}');
-                const text = document.getElementById('updateText{{ $req->id }}');
-                const submitBtn = this.querySelector('button[type="submit"]');
-                
-                if (spinner && text) {
-                    spinner.classList.remove('d-none');
-                    text.classList.add('d-none');
-                    submitBtn.disabled = true;
-                }
-            });
-        }
-        @endif
-    @endforeach
-    
-    // Preserve filter parameters when paginating
-    const paginationLinks = document.querySelectorAll('.pagination a');
-    paginationLinks.forEach(link => {
-        const url = new URL(link.href);
-        const params = new URLSearchParams(window.location.search);
-        
-        // Add current filters to pagination links
-        for (const [key, value] of params) {
-            if (value && !url.searchParams.has(key)) {
-                url.searchParams.append(key, value);
+    // Enhanced delete confirmation
+    const deleteForms = document.querySelectorAll('form[method="POST"][onsubmit]');
+    deleteForms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            if (!confirm('Are you sure? This action cannot be undone.')) {
+                e.preventDefault();
             }
-        }
-        
-        link.href = url.toString();
+        });
     });
 });
 </script>

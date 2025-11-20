@@ -39,6 +39,13 @@ class UserController extends Controller
         return redirect()->route('admin.users.index')->with('success', 'User created successfully!');
     }
 
+    // ✅ ADDED SHOW METHOD
+    public function show(User $user)
+    {
+        return view('admin.users.show', compact('user'));
+    }
+    // --------------------
+
     public function edit(User $user)
     {
         return view('admin.users.edit', compact('user'));
@@ -61,6 +68,7 @@ class UserController extends Controller
         if ($user->id === auth()->id()) {
             return back()->withErrors('You cannot delete your own account.');
         }
+
         $user->delete();
         return back()->with('success', 'User deleted successfully!');
     }

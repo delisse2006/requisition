@@ -15,15 +15,21 @@ return new class extends Migration
 public function up()
 {
     Schema::table('users', function (Blueprint $table) {
-        $table->string('security_question')->nullable();
-        $table->string('security_answer')->nullable();
+        if (! Schema::hasColumn('users', 'security_question')) {
+            $table->string('security_question')->nullable();
+        }
+        if (! Schema::hasColumn('users', 'security_answer')) {
+            $table->string('security_answer')->nullable();
+        }
     });
 }
 
 public function down()
 {
     Schema::table('users', function (Blueprint $table) {
-        $table->dropColumn(['security_question', 'security_answer']);
+        if (Schema::hasColumn('users', 'security_question') || Schema::hasColumn('users', 'security_answer')) {
+            $table->dropColumn(['security_question', 'security_answer']);
+        }
     });
 }
 };
